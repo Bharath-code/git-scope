@@ -1,0 +1,54 @@
+# GoReleaser configuration for git-scope
+# Run: goreleaser release --clean
+
+project_name: git-scope
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: git-scope
+    main: ./cmd/git-scope
+    binary: git-scope
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - id: default
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+brews:
+  - name: git-scope
+    repository:
+      owner: Bharath-code
+      name: homebrew-tap
+    homepage: "https://github.com/Bharath-code/git-scope"
+    description: "A fast TUI to see the status of all git repositories"
+    license: "MIT"
+    install: |
+      bin.install "git-scope"
+    test: |
+      system "#{bin}/git-scope", "help"
