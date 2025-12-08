@@ -1,6 +1,6 @@
 package cache
 
-import "github.com/bharath/git-scope/internal/model"
+import "github.com/Bharath-code/git-scope/internal/model"
 
 // Store defines the interface for caching repo data
 type Store interface {

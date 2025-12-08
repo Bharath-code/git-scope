@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bharath/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/model"
 )
 
 // Status retrieves the git status for a repository at the given path

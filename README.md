@@ -22,13 +22,13 @@
 ### From Source
 
 ```bash
-go install github.com/bharath/git-scope/cmd/git-scope@latest
+go install github.com/Bharath-code/git-scope/cmd/git-scope@latest
 ```
 
 Or clone and build:
 
 ```bash
-git clone https://github.com/bharath/git-scope.git
+git clone https://github.com/Bharath-code/git-scope.git
 cd git-scope
 go build -o git-scope ./cmd/git-scope
 ```

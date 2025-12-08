@@ -2,9 +2,9 @@ package tui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/bharath/git-scope/internal/config"
-	"github.com/bharath/git-scope/internal/model"
-	"github.com/bharath/git-scope/internal/scan"
+	"github.com/Bharath-code/git-scope/internal/config"
+	"github.com/Bharath-code/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/scan"
 )
 
 // Run starts the Bubbletea TUI application

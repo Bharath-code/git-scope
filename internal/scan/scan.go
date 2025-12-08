@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bharath/git-scope/internal/gitstatus"
-	"github.com/bharath/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/gitstatus"
+	"github.com/Bharath-code/git-scope/internal/model"
 )
 
 // ScanRoots recursively scans the given root directories for git repositories

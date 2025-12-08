@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/bharath/git-scope/internal/config"
-	"github.com/bharath/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/config"
+	"github.com/Bharath-code/git-scope/internal/model"
 )
 
 // State represents the current UI state

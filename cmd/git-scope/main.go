@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/bharath/git-scope/internal/config"
-	"github.com/bharath/git-scope/internal/scan"
-	"github.com/bharath/git-scope/internal/tui"
+	"github.com/Bharath-code/git-scope/internal/config"
+	"github.com/Bharath-code/git-scope/internal/scan"
+	"github.com/Bharath-code/git-scope/internal/tui"
 )
 
 const version = "0.1.0"
