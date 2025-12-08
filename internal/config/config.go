@@ -82,3 +82,47 @@ func DefaultConfigPath() string {
 	}
 	return filepath.Join(home, ".config", "git-scope", "config.yml")
 }
+
+// ConfigExists checks if a config file exists at the given path
+func ConfigExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// CreateConfig creates a new config file at the given path
+func CreateConfig(path string, roots []string, editor string) error {
+	// Ensure directory exists
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("create config dir: %w", err)
+	}
+
+	cfg := &Config{
+		Roots: roots,
+		Ignore: []string{
+			"node_modules",
+			".next",
+			"dist",
+			"build",
+			"target",
+			".venv",
+			"vendor",
+		},
+		Editor: editor,
+	}
+
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("marshal config: %w", err)
+	}
+
+	// Add header comment
+	content := "# git-scope configuration\n# Edit this file to customize scanning behavior\n\n" + string(data)
+
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		return fmt.Errorf("write config: %w", err)
+	}
+
+	return nil
+}
+
