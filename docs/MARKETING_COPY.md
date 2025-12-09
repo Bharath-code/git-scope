@@ -43,10 +43,14 @@ It scans your dev directories and gives you a bird's-eye view of all your reposi
 - 🎨 Modern TUI with Bubble Tea & Lipgloss
 - ⌨️ Vim-like navigation (j/k)
 
-**Install:**
+**Homebrew (macOS/Linux):**
 ```bash
-brew install Bharath-code/tap/git-scope
-# or
+brew tap Bharath-code/tap
+brew install git-scope
+```
+
+**Go Install:**
+```bash
 go install github.com/Bharath-code/git-scope/cmd/git-scope@latest
 ```
 

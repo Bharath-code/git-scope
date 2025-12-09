@@ -130,9 +130,10 @@
             background: var(--surface);
             border: 1px solid var(--border);
             display: inline-flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            border-radius: 99px;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 1.5rem;
+            border-radius: 12px;
             font-family: 'JetBrains Mono', monospace;
             color: var(--text-muted);
             cursor: pointer;
@@ -140,6 +141,8 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
+            text-align: left;
+            margin: 0 auto;
         }
 
         .install-box:hover {
@@ -153,9 +156,24 @@
             transform: translateY(0);
         }
 
-        .install-box span {
+        .install-line {
+            display: flex;
+            gap: 1rem;
+            margin: 0.25rem 0;
+        }
+
+        .prompt {
             color: var(--primary);
-            margin-right: 0.75rem;
+            user-select: none;
+        }
+
+        .cmd {
+            color: var(--text-main);
+        }
+
+        .comment {
+            color: #555;
+            font-style: italic;
         }
 
         .demo-section {
@@ -275,10 +293,7 @@
             }
 
             .install-box {
-                font-size: 0.9rem;
-                padding: 1rem;
                 width: 100%;
-                justify-content: center;
             }
         }
     </style>
@@ -307,10 +322,17 @@
             </p>
 
             <div class="install-box"
-                onclick="navigator.clipboard.writeText('brew install Bharath-code/tap/git-scope'); alert('Copied to clipboard!');">
-                <span>$</span> brew install Bharath-code/tap/git-scope
+                onclick="navigator.clipboard.writeText('brew tap Bharath-code/tap\nbrew install git-scope'); alert('Copied cmds!');">
+                <div class="install-line">
+                    <span class="prompt">$</span>
+                    <span class="cmd">brew tap Bharath-code/tap</span>
+                </div>
+                <div class="install-line">
+                    <span class="prompt">$</span>
+                    <span class="cmd">brew install git-scope</span>
+                </div>
             </div>
-            <br>
+
             <p style="margin-top:1rem; font-size: 0.8rem; color:#555;">(Click to copy)</p>
         </section>
 

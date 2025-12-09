@@ -29,7 +29,8 @@
 
 ### Homebrew (macOS/Linux)
 ```bash
-brew install Bharath-code/tap/git-scope
+brew tap Bharath-code/tap
+brew install git-scope
 ```
 
 ### From Source
