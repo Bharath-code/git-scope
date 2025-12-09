@@ -153,6 +153,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Clear search and filters
 			if m.state == StateReady {
 				m.searchQuery = ""
+				m.textInput.SetValue("") // Also reset the text input
 				m.filterMode = FilterAll
 				m.resizeTable()
 				m.updateTable()

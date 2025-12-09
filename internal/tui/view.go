@@ -79,7 +79,7 @@ func (m Model) renderDashboard() string {
 
 	// Header with logo on its own line
 	logo := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#A78BFA")).Render("git-scope")
-	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v0.2.1")
+	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v0.3.0")
 	b.WriteString(logo + version)
 	b.WriteString("\n\n")
 

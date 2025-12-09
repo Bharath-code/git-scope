@@ -14,7 +14,7 @@ import (
 	"github.com/Bharath-code/git-scope/internal/tui"
 )
 
-const version = "0.2.1"
+const version = "0.3.0"
 
 func usage() {
 	fmt.Fprintf(os.Stderr, `git-scope v%s — A fast TUI to see the status of all git repositories
