@@ -79,7 +79,7 @@ func (m Model) renderDashboard() string {
 
 	// Header with logo on its own line
 	logo := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#A78BFA")).Render("git-scope")
-	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v0.3.0")
+	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v0.3.1")
 	b.WriteString(logo + version)
 	b.WriteString("\n\n")
 
@@ -88,8 +88,12 @@ func (m Model) renderDashboard() string {
 	b.WriteString("\n")
 
 	// Search bar (show when searching or has active search)
-	if m.state == StateSearching || m.searchQuery != "" {
+	if m.state == StateSearching {
 		b.WriteString(m.renderSearchBar())
+		b.WriteString("\n")
+	} else if m.searchQuery != "" {
+		// Show search badge only if searchQuery is actually set
+		b.WriteString(m.renderSearchBadge())
 		b.WriteString("\n")
 	}
 
@@ -121,13 +125,18 @@ func (m Model) renderSearchBar() string {
 		BorderForeground(lipgloss.Color("#7C3AED")).
 		Padding(0, 1)
 
-	if m.state == StateSearching {
-		// Show active search input
-		label := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#7C3AED")).
-			Bold(true).
-			Render("🔍 Search: ")
-		return searchStyle.Render(label + m.textInput.View())
+	// Show active search input
+	label := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#7C3AED")).
+		Bold(true).
+		Render("🔍 Search: ")
+	return searchStyle.Render(label + m.textInput.View())
+}
+
+func (m Model) renderSearchBadge() string {
+	// Guard: don't render empty badge
+	if m.searchQuery == "" {
+		return ""
 	}
 	
 	// Show current search query as badge
