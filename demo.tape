@@ -17,7 +17,7 @@ Set Theme "Catppuccin Mocha"
 Hide
 Type "export PS1='> '"
 Enter
-Clear
+Ctrl+L
 Show
 
 # Start the demo
