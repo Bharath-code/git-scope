@@ -20,11 +20,11 @@ Enter
 Ctrl+L
 Show
 
-# Start the demo
-Type "git-scope --help"
+# Start the demo with version check
+Type "git-scope --version"
 Sleep 500ms
 Enter
-Sleep 2s
+Sleep 1s
 
 # Run the TUI
 Type "git-scope"
