@@ -402,13 +402,17 @@
     <div class="container">
         <nav>
             <a href="#" class="logo">git<span>-</span>scope</a>
-            <a href="https://github.com/Bharath-code/git-scope" class="github-link" target="_blank">
-                <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
-                    <path
-                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-                </svg>
-                <span id="star-count">GitHub</span>
-            </a>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=7C3AED&label=Downloads"
+                    alt="Downloads" style="height: 20px;">
+                <a href="https://github.com/Bharath-code/git-scope" class="github-link" target="_blank" id="github-btn">
+                    <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+                        <path
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                    </svg>
+                    <span id="star-count">GitHub</span>
+                </a>
+            </div>
         </nav>
 
         <section class="hero">
@@ -513,31 +517,73 @@
     </div>
 
     <script>
-        // Star Count Fetcher
+        // ===============================
+        // ANALYTICS SETUP
+        // ===============================
+        // To enable analytics, set up free Umami (https://umami.is) and replace:
+        // data-website-id="YOUR_WEBSITE_ID" with your actual ID
+        // Or use Cloudflare Web Analytics (also free)
+        
+        // Simple analytics object for tracking events
+        const analytics = {
+            events: [],
+            track: function(name, data = {}) {
+                const event = { name, data, time: new Date().toISOString() };
+                this.events.push(event);
+                console.log('[Analytics]', name, data);
+                // If you have Umami, uncomment:
+                // if (window.umami) umami.track(name, data);
+            }
+        };
+
+        // Track page view
+        analytics.track('page_view', { page: window.location.pathname });
+
+        // ===============================
+        // SCROLL DEPTH TRACKING
+        // ===============================
+        let maxScroll = 0;
+        window.addEventListener('scroll', () => {
+            const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScroll) {
+                maxScroll = scrollPercent;
+                // Track milestones: 25%, 50%, 75%, 100%
+                if ([25, 50, 75, 100].includes(scrollPercent)) {
+                    analytics.track('scroll_depth', { percent: scrollPercent });
+                }
+            }
+        });
+
+        // ===============================
+        // STAR COUNT FETCHER
+        // ===============================
         fetch('https://api.github.com/repos/Bharath-code/git-scope')
             .then(response => response.json())
             .then(data => {
                 if (data.stargazers_count !== undefined) {
                     const count = data.stargazers_count;
-                    // Format: 1.2k if > 1000
                     const formatted = count > 1000 ? (count / 1000).toFixed(1) + 'k' : count;
                     document.getElementById('star-count').textContent = `Star ${formatted}`;
                 }
             })
             .catch(err => console.log('Failed to fetch stars', err));
 
-        // Tabs
+        // ===============================
+        // TAB SWITCHING
+        // ===============================
         function switchTab(id) {
-            // Headers
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-
-            // Content
             document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
             document.getElementById('code-' + id).classList.add('active');
+            
+            // Track tab switch
+            analytics.track('tab_switch', { tab: id });
         }
 
-        // Copy
+        // ===============================
+        // COPY COMMAND (with tracking)
+        // ===============================
         function copyCode() {
             const activeBlock = document.querySelector('.code-block.active');
             let text = "";
@@ -552,9 +598,56 @@
                 setTimeout(() => {
                     hint.innerText = original;
                 }, 2000);
+                
+                // Track command copy
+                analytics.track('command_copied', { command: text.split('\n')[0] });
             });
         }
+
+        // ===============================
+        // GITHUB BUTTON CLICK TRACKING
+        // ===============================
+        document.getElementById('github-btn')?.addEventListener('click', () => {
+            analytics.track('github_click', { location: 'nav' });
+        });
+
+        // Track all footer GitHub links
+        document.querySelectorAll('footer a').forEach(link => {
+            link.addEventListener('click', () => {
+                analytics.track('footer_link_click', { href: link.href });
+            });
+        });
+
+        // ===============================
+        // SESSION SUMMARY (on page unload)
+        // ===============================
+        window.addEventListener('beforeunload', () => {
+            analytics.track('session_end', { 
+                maxScroll: maxScroll,
+                totalEvents: analytics.events.length 
+            });
+        });
     </script>
+
+    <!-- 
+    TO ENABLE REAL ANALYTICS:
+    
+    Option 1: Umami (Free, self-hosted on Vercel)
+    1. Go to https://umami.is and deploy to Vercel (free)
+    2. Add this script before </head>:
+       <script defer src="https://your-umami-instance.vercel.app/script.js" 
+               data-website-id="YOUR_WEBSITE_ID"></script>
+    
+    Option 2: Cloudflare Web Analytics (Free, no setup)
+    1. Go to Cloudflare Dashboard > Web Analytics
+    2. Add your site, get the script
+    3. Add before </body>:
+       <script defer src='https://static.cloudflareinsights.com/beacon.min.js' 
+               data-cf-beacon='{"token": "YOUR_TOKEN"}'></script>
+    
+    Option 3: Google Analytics (Free)
+    Add your GA4 script before </head>
+    -->
 
 </body>
 
