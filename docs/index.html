@@ -8,6 +8,11 @@
     <meta name="description"
         content="A blazing fast TUI to manage, search, and clean up all your local git repositories. Zero config required.">
     <link rel="canonical" href="https://bharath-code.github.io/git-scope/">
+    <meta name="keywords"
+        content="git, tui, git-manager, developer-tools, golang, cli, productivity, git-status, terminal">
+    <meta name="author" content="Bharath Kumar">
+    <meta name="theme-color" content="#8B5CF6">
+    <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -77,10 +82,20 @@
 
         /* Nav */
         nav {
-            padding: 2rem 0;
+            padding: 1.5rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            background: rgba(14, 14, 18, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         .logo {
@@ -390,12 +405,38 @@
         }
 
         @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            nav {
+                padding: 1rem;
+                margin-top: 10px;
+                top: 10px;
+            }
+
             h1 {
                 font-size: 2.5rem;
             }
 
-            .container {
-                padding: 0 1.5rem;
+            .hero {
+                padding: 4rem 0 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                padding: 0 1rem;
+            }
+
+            .install-box {
+                padding: 1rem;
+                font-size: 0.85rem;
+                margin: 0 0.5rem;
+            }
+
+            .tab-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -466,6 +507,30 @@
             </div>
         </section>
 
+        <section class="value-prop" style="margin-bottom: 6rem; text-align: center;">
+            <p
+                style="color: var(--primary); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.9rem;">
+                Why Git-Scope?</p>
+            <h2 style="font-size: clamp(2rem, 4vw, 2.5rem); margin-bottom: 2rem; font-weight: 700;">Stop Manually <code
+                    style="font-size: 0.8em; color: var(--primary);">cd</code>-ing Everywhere</h2>
+            <div
+                style="max-width: 700px; margin: 0 auto; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6;">
+                <p>Do you have 50+ git repos scattered across `~/code`, `~/projects`, and `~/work`? Finding that one
+                    side-project from 3 months ago shouldn't take 5 minutes.</p>
+                <div style="height: 1.5rem;"></div>
+                <p>Git-Scope gives you a <strong style="color: var(--text-main);">God-mode view</strong> of your entire
+                    git universe. See what's dirty, what needs pushing, and jump into any repo instantly.</p>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <img src="https://img.shields.io/badge/Written_in-Go-00ADD8?style=flat-square&logo=go"
+                        alt="Written in Go">
+                    <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
+                    <img src="https://img.shields.io/badge/Speed-Blazing_Fast-f9bf2d?style=flat-square"
+                        alt="Blazing Fast">
+                </div>
+            </div>
+        </section>
+
         <section class="demo-section">
             <div class="window-frame">
                 <div class="window-header">
@@ -512,11 +577,15 @@
 
         <footer>
             <div class="footer-links">
-                <a href="https://github.com/Bharath-code/git-scope">GitHub</a>
-                <a href="https://github.com/Bharath-code/git-scope/releases">Releases</a>
-                <a href="https://github.com/Bharath-code/git-scope/issues">Issues</a>
+                <a href="https://github.com/Bharath-code/git-scope" aria-label="GitHub Repository">GitHub</a>
+                <a href="https://github.com/Bharath-code/git-scope/releases" aria-label="Download Releases">Releases</a>
+                <a href="https://github.com/Bharath-code/git-scope/issues" aria-label="Report Issues">Issues</a>
+                <a href="mailto:support@git-scope.com" aria-label="Contact Support">Contact</a>
             </div>
-            <p>&copy; 2025 Git-Scope. MIT License.</p>
+            <p>&copy; 2025 Git-Scope. Released under the <a
+                    href="https://github.com/Bharath-code/git-scope/blob/main/LICENSE"
+                    style="color: var(--text-muted); text-decoration: underline;">MIT License</a>.</p>
+            <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.6;">Designed by Bharath-code</p>
         </footer>
     </div>
 
@@ -527,11 +596,11 @@
         // To enable analytics, set up free Umami (https://umami.is) and replace:
         // data-website-id="YOUR_WEBSITE_ID" with your actual ID
         // Or use Cloudflare Web Analytics (also free)
-        
+
         // Simple analytics object for tracking events
         const analytics = {
             events: [],
-            track: function(name, data = {}) {
+            track: function (name, data = {}) {
                 const event = { name, data, time: new Date().toISOString() };
                 this.events.push(event);
                 console.log('[Analytics]', name, data);
@@ -598,7 +667,7 @@
             event.target.classList.add('active');
             document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
             document.getElementById('code-' + id).classList.add('active');
-            
+
             // Track tab switch with GoatCounter
             trackEvent('tab-' + id, 'Switched to ' + id + ' install tab');
         }
@@ -620,7 +689,7 @@
                 setTimeout(() => {
                     hint.innerText = original;
                 }, 2000);
-                
+
                 // Track command copy with GoatCounter
                 trackEvent('command-copied', 'Copied install command');
             });
@@ -645,9 +714,9 @@
         // SESSION SUMMARY (on page unload)
         // ===============================
         window.addEventListener('beforeunload', () => {
-            analytics.track('session_end', { 
+            analytics.track('session_end', {
                 maxScroll: maxScroll,
-                totalEvents: analytics.events.length 
+                totalEvents: analytics.events.length
             });
         });
     </script>
