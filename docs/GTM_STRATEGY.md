@@ -7,6 +7,9 @@
 - **Solution**: A terminal-based "God Mode" dashboard for local git state.
 - **Vibe**: Loves CLI tools, hates bloated GUIs (Electron apps), values speed and minimalism.
 
+## 💎 Value Proposition
+**Git-Scope** helps **busy developers** **instantly find, filter, and manage 50+ repos** so you can **stay in your flow state** without **endlessly `cd`-ing through nested directories.**
+
 ---
 
 ## 📢 Channel Strategy
