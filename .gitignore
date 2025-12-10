@@ -21,3 +21,5 @@
 # OS
 .DS_Store
 Thumbs.db
+
+/materials
