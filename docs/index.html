@@ -13,7 +13,7 @@
     <meta name="author" content="Bharath Kumar">
     <meta name="theme-color" content="#8B5CF6">
     <meta name="robots" content="index, follow">
-
+    <meta name="google-site-verification" content="TpPfXeUVDiIUimzkBojIiZ6zm1iBBE2gxDkOt8G4Hjo" />
     <!-- Schema.org for Google/AI Search -->
     <script type="application/ld+json">
     {
@@ -93,6 +93,7 @@
 
         html {
             overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
         code,
@@ -152,6 +153,29 @@
 
         .github-link:hover {
             color: var(--text-main);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
         }
 
         /* Hero */
@@ -482,7 +506,13 @@
     <div class="container">
         <nav>
             <a href="#" class="logo">git<span>-</span>scope</a>
-            <div style="display: flex; gap: 1rem; align-items: center;">
+            <div style="display: flex; gap: 1.5rem; align-items: center;">
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#blog">Blog</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1);"></div>
                 <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=7C3AED&label=Downloads"
                     alt="Downloads" style="height: 20px;" height="20">
                 <a href="https://github.com/Bharath-code/git-scope" class="github-link" target="_blank" id="github-btn">
@@ -585,7 +615,7 @@
                 </div>
             </section>
 
-            <div class="features">
+            <div class="features" id="features">
                 <div class="card">
                     <h3><span class="card-icon">⚡️</span> Instant Overview</h3>
                     <p>Git-scope finds, parses, and caches your entire directory tree in milliseconds. It knows where
@@ -641,7 +671,7 @@
                 </div>
             </section>
 
-            <section class="resources" style="margin-bottom: 6rem; text-align: center;">
+            <section class="resources" id="blog" style="margin-bottom: 6rem; text-align: center;">
                 <p
                     style="color: var(--primary); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.9rem;">
                     From the Blog</p>
@@ -668,7 +698,7 @@
             </section>
         </main>
 
-        <footer>
+        <footer id="contact">
             <div class="footer-links">
                 <a href="https://github.com/Bharath-code/" aria-label="GitHub Repository" target="_blank">
                     <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
