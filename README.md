@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 <p align="center">
-  <img src="docs/git-scope-demo.webp" alt="git-scope demo" width="600">
+  <img src="docs/git-scope-demo-1.webp" alt="git-scope demo" width="600">
 </p>
 
 **[🌐 Visit the Landing Page](https://bharath-code.github.io/git-scope/)**
