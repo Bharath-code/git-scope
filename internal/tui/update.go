@@ -6,6 +6,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/Bharath-code/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/stats"
 )
 
 // Update handles messages and updates the model
@@ -62,6 +64,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.statusMsg = ""
 		}
 		return m, scanReposCmd(m.cfg)
+
+	case grassDataLoadedMsg:
+		m.grassData = msg.data
+		if msg.data != nil {
+			m.statusMsg = fmt.Sprintf("🌿 %d commits in %d weeks", msg.data.TotalCommits, msg.data.WeeksCount)
+		}
+		return m, nil
+
+	case diskDataLoadedMsg:
+		m.diskData = msg.data
+		if msg.data != nil {
+			m.statusMsg = fmt.Sprintf("💾 %s total across %d repos", stats.FormatBytes(msg.data.TotalSize), msg.data.RepoCount)
+		}
+		return m, nil
+
+	case timelineDataLoadedMsg:
+		m.timelineData = msg.data
+		if msg.data != nil {
+			m.statusMsg = fmt.Sprintf("⏰ %d repos with recent activity", len(msg.data.Entries))
+		}
+		return m, nil
 
 	case tea.KeyMsg:
 		// Handle search mode separately
@@ -172,6 +195,56 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, nil
 			}
+
+		case "g":
+			// Toggle grass panel
+			if m.state == StateReady {
+				if m.activePanel == PanelGrass {
+					m.activePanel = PanelNone
+					m.statusMsg = ""
+				} else {
+					m.activePanel = PanelGrass
+					m.statusMsg = "🌿 Loading contribution graph..."
+					return m, loadGrassDataCmd(m.repos)
+				}
+				return m, nil
+			}
+
+		case "d":
+			// Toggle disk usage panel
+			if m.state == StateReady {
+				if m.activePanel == PanelDisk {
+					m.activePanel = PanelNone
+					m.statusMsg = ""
+				} else {
+					m.activePanel = PanelDisk
+					m.statusMsg = "💾 Calculating disk usage..."
+					return m, loadDiskDataCmd(m.repos)
+				}
+				return m, nil
+			}
+
+		case "t":
+			// Toggle timeline panel
+			if m.state == StateReady {
+				if m.activePanel == PanelTimeline {
+					m.activePanel = PanelNone
+					m.statusMsg = ""
+				} else {
+					m.activePanel = PanelTimeline
+					m.statusMsg = "⏰ Loading timeline..."
+					return m, loadTimelineDataCmd(m.repos)
+				}
+				return m, nil
+			}
+
+		case "esc":
+			// Close panel if open
+			if m.activePanel != PanelNone {
+				m.activePanel = PanelNone
+				m.statusMsg = ""
+				return m, nil
+			}
 		}
 	}
 
@@ -223,4 +296,43 @@ func (m Model) handleSearchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // editorClosedMsg is sent when the editor process closes
 type editorClosedMsg struct {
 	err error
+}
+
+// grassDataLoadedMsg is sent when contribution data is loaded
+type grassDataLoadedMsg struct {
+	data *stats.ContributionData
+}
+
+// loadGrassDataCmd loads contribution data from all repos
+func loadGrassDataCmd(repos []model.Repo) tea.Cmd {
+	return func() tea.Msg {
+		data, _ := stats.GetContributions(repos, 12) // Last 12 weeks
+		return grassDataLoadedMsg{data: data}
+	}
+}
+
+// diskDataLoadedMsg is sent when disk usage data is loaded
+type diskDataLoadedMsg struct {
+	data *stats.DiskUsageData
+}
+
+// loadDiskDataCmd loads disk usage data from all repos
+func loadDiskDataCmd(repos []model.Repo) tea.Cmd {
+	return func() tea.Msg {
+		data, _ := stats.GetDiskUsage(repos)
+		return diskDataLoadedMsg{data: data}
+	}
+}
+
+// timelineDataLoadedMsg is sent when timeline data is loaded
+type timelineDataLoadedMsg struct {
+	data *stats.TimelineData
+}
+
+// loadTimelineDataCmd loads timeline data from all repos
+func loadTimelineDataCmd(repos []model.Repo) tea.Cmd {
+	return func() tea.Msg {
+		data, _ := stats.GetTimeline(repos)
+		return timelineDataLoadedMsg{data: data}
+	}
 }

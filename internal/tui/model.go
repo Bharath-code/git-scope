@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/Bharath-code/git-scope/internal/config"
 	"github.com/Bharath-code/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/stats"
 )
 
 // State represents the current UI state
@@ -58,6 +59,11 @@ type Model struct {
 	sortMode    SortMode
 	filterMode  FilterMode
 	searchQuery string
+	// Panel state
+	activePanel  PanelType
+	grassData    *stats.ContributionData
+	diskData     *stats.DiskUsageData
+	timelineData *stats.TimelineData
 }
 
 // NewModel creates a new TUI model

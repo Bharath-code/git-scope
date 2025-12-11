@@ -79,7 +79,7 @@ func (m Model) renderDashboard() string {
 
 	// Header with logo on its own line
 	logo := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#A78BFA")).Render("git-scope")
-	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v0.3.1")
+	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v1.0.0")
 	b.WriteString(logo + version)
 	b.WriteString("\n\n")
 
@@ -99,8 +99,27 @@ func (m Model) renderDashboard() string {
 
 	b.WriteString("\n")
 
-	// Table
-	b.WriteString(m.table.View())
+	// Main content area - split pane if panel is active
+	if m.activePanel != PanelNone {
+		// Render table content
+		tableContent := m.table.View()
+		
+		// Render panel content based on active panel
+		var panelContent string
+		switch m.activePanel {
+		case PanelGrass:
+			panelContent = renderGrassPanel(m.grassData, m.width/2, m.height-15)
+		case PanelDisk:
+			panelContent = renderDiskPanel(m.diskData, m.width/2, m.height-15)
+		case PanelTimeline:
+			panelContent = renderTimelinePanel(m.timelineData, m.width/2, m.height-15)
+		}
+		
+		b.WriteString(renderSplitPane(tableContent, panelContent, m.width-4))
+	} else {
+		// Full-width table
+		b.WriteString(m.table.View())
+	}
 	b.WriteString("\n")
 
 	// Status message if any
@@ -236,6 +255,14 @@ func (m Model) renderHelp() string {
 		items = append(items, helpItem("type", "search"))
 		items = append(items, helpItem("enter", "apply"))
 		items = append(items, helpItem("esc", "cancel"))
+	} else if m.activePanel != PanelNone {
+		// Panel active help
+		items = append(items, helpItem("↑↓", "nav"))
+		items = append(items, helpItem("esc", "close"))
+		items = append(items, helpItem("g", "grass"))
+		items = append(items, helpItem("d", "disk"))
+		items = append(items, helpItem("t", "time"))
+		items = append(items, helpItem("q", "quit"))
 	} else {
 		// Normal mode help
 		items = append(items, helpItem("↑↓", "nav"))
@@ -243,6 +270,9 @@ func (m Model) renderHelp() string {
 		items = append(items, helpItem("/", "search"))
 		items = append(items, helpItem("f", "filter"))
 		items = append(items, helpItem("s", "sort"))
+		items = append(items, helpItem("g", "grass"))
+		items = append(items, helpItem("d", "disk"))
+		items = append(items, helpItem("t", "time"))
 		items = append(items, helpItem("c", "clear"))
 		items = append(items, helpItem("r", "rescan"))
 		items = append(items, helpItem("q", "quit"))

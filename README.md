@@ -24,6 +24,9 @@
 - 📊 **Dashboard**: Shows branch, staged/unstaged counts, and last commit
 - ⌨️ **Keyboard-driven**: Vim-like navigation (`j`/`k`) and sorting (`s`)
 - 🚀 **Quick Jump**: Open any repo in your editor (VSCode, nvim, etc.) with `Enter`
+- 🌿 **Contribution Graph**: GitHub-style heatmap of your local commits (`g`)
+- 💾 **Disk Usage**: See `.git` and `node_modules` sizes at a glance (`d`)
+- ⏰ **Timeline**: What were you working on? See recent activity (`t`)
 
 ## Installation
 
@@ -79,6 +82,10 @@ editor: code  # or nvim, vim, helix
 | `c` | **Clear** search & filters |
 | `Enter` | **Open** repo in editor |
 | `r` | **Rescan** directories |
+| `g` | Toggle **Grass** (contribution graph) |
+| `d` | Toggle **Disk** usage panel |
+| `t` | Toggle **Timeline** panel |
+| `Esc` | Close panel |
 | `q` | **Quit** |
 
 ## Roadmap

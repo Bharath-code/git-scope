@@ -14,7 +14,7 @@ import (
 	"github.com/Bharath-code/git-scope/internal/tui"
 )
 
-const version = "0.3.1"
+const version = "1.0.0"
 
 func usage() {
 	fmt.Fprintf(os.Stderr, `git-scope v%s — A fast TUI to see the status of all git repositories
@@ -44,7 +44,15 @@ Flags:
 func main() {
 	flag.Usage = usage
 	configPath := flag.String("config", config.DefaultConfigPath(), "Path to config file")
+	showVersion := flag.Bool("v", false, "Show version")
+	flag.Bool("version", false, "Show version")
 	flag.Parse()
+
+	// Handle version flag
+	if *showVersion || isFlagPassed("version") {
+		fmt.Printf("git-scope v%s\n", version)
+		return
+	}
 
 	args := flag.Args()
 	cmd := ""
@@ -53,7 +61,7 @@ func main() {
 	// Parse command and directories
 	if len(args) >= 1 {
 		switch args[0] {
-		case "scan", "tui", "help", "init", "scan-all", "-h", "--help":
+		case "scan", "tui", "help", "init", "scan-all", "-h", "--help", "-v", "--version":
 			cmd = args[0]
 			dirs = args[1:]
 		default:
@@ -66,6 +74,12 @@ func main() {
 	// Handle help early
 	if cmd == "help" || cmd == "-h" || cmd == "--help" {
 		usage()
+		return
+	}
+
+	// Handle version
+	if cmd == "-v" || cmd == "--version" {
+		fmt.Printf("git-scope v%s\n", version)
 		return
 	}
 
@@ -113,6 +127,17 @@ func main() {
 		usage()
 		os.Exit(1)
 	}
+}
+
+// isFlagPassed checks if a flag was explicitly passed on the command line
+func isFlagPassed(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
 }
 
 // expandDirs converts relative paths and ~ to absolute paths
