@@ -161,6 +161,12 @@
             gap: 1.5rem;
         }
 
+        .nav-right {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
         .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
@@ -180,16 +186,9 @@
                 justify-content: center;
             }
 
-            /* Show nav links on mobile, but stack them or center them */
+            /* Hide nav links on mobile to prevent layout issues */
             .nav-links {
-                display: flex;
-                order: 3;
-                /* Move to bottom of flex container if wrapping */
-                width: 100%;
-                justify-content: center;
-                gap: 1.5rem;
-                padding-top: 0.5rem;
-                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                display: none;
             }
 
             .logo {
@@ -596,7 +595,7 @@
     <div class="container">
         <nav>
             <a href="#" class="logo">git<span>-</span>scope</a>
-            <div style="display: flex; gap: 1.5rem; align-items: center;">
+            <div class="nav-right">
                 <div class="nav-links">
                     <a href="#features">Features</a>
                     <a href="#blog">Blog</a>
@@ -760,7 +759,7 @@
                     Coming Soon</p>
                 <h2 style="font-size: clamp(2rem, 3vw, 2.5rem); margin-bottom: 3rem; font-weight: 700;">Roadmap</h2>
 
-                <div class="features" style="max-width: 900px; margin: 0 auto; text-align: left;">
+                <div class="features" style="max-width: 900px; text-align: left;">
                     <div class="card">
                         <h3><span class="card-icon">👁️</span> Background Watcher</h3>
                         <p>Daemon mode to watch filesystem changes in real-time without manual rescans.</p>
@@ -783,7 +782,7 @@
                 <h2 style="font-size: clamp(2rem, 3vw, 2.5rem); margin-bottom: 3rem; font-weight: 700;">Resources &
                     Guides</h2>
 
-                <div class="features" style="max-width: 900px; margin: 0 auto; text-align: left;">
+                <div class="features" style="max-width: 900px; text-align: left;">
                     <a href="https://dev.to/iam_pbk/how-to-tame-your-multi-repo-chaos-with-the-terminal-52bi"
                         target="_blank" class="card" style="text-decoration: none; display: block; height: 100%;">
                         <h3><span class="card-icon">🤯</span> Taming Multi-Repo Chaos</h3>
