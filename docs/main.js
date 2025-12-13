@@ -26,7 +26,51 @@ function trackEvent(eventName, title) {
 }
 
 // ===============================
-// SCROLL DEPTH TRACKING
+// COPY COMMAND
+// ===============================
+function copyInstallCommand() {
+    const command = "brew tap Bharath-code/tap && brew install git-scope";
+    
+    // Fallback for non-secure contexts
+    if (!navigator.clipboard) {
+        const ta = document.createElement('textarea');
+        ta.value = command;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showCopyFeedback();
+        return;
+    }
+
+    navigator.clipboard.writeText(command).then(() => {
+        showCopyFeedback();
+        trackEvent('command-copied', 'Copied install command');
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
+
+function showCopyFeedback() {
+    const icon = document.getElementById('copy-icon');
+    if (!icon) return;
+    
+    const originalHTML = icon.innerHTML;
+    
+    // Change to Checkmark
+    icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+    icon.style.opacity = '1';
+    icon.style.color = '#27C93F'; // Green from theme
+
+    setTimeout(() => {
+        icon.innerHTML = originalHTML;
+        icon.style.opacity = '0.5';
+        icon.style.color = 'currentColor';
+    }, 2000);
+}
+
+// ===============================
+// SESSION SUMMARY
 // ===============================
 let maxScroll = 0;
 let scrollMilestones = { 25: false, 50: false, 75: false, 100: false };
@@ -43,69 +87,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// ===============================
-// STAR COUNT FETCHER
-// ===============================
-fetch('https://api.github.com/repos/Bharath-code/git-scope')
-    .then(response => response.json())
-    .then(data => {
-        if (data.stargazers_count !== undefined) {
-            const count = data.stargazers_count;
-            const formatted = count > 1000 ? (count / 1000).toFixed(1) + 'k' : count;
-            document.getElementById('star-count').textContent = `Star ${formatted}`;
-        }
-    })
-    .catch(err => console.log('Failed to fetch stars', err));
-
-// ===============================
-// TAB SWITCHING
-// ===============================
-function switchTab(id) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
-    document.getElementById('code-' + id).classList.add('active');
-    trackEvent('tab-' + id, 'Switched to ' + id + ' install tab');
-}
-
-// ===============================
-// COPY COMMAND
-// ===============================
-function copyCode() {
-    const activeBlock = document.querySelector('.code-block.active');
-    let text = "";
-    activeBlock.querySelectorAll('.cmd').forEach(el => text += el.innerText + "\n");
-    text = text.trim();
-
-    navigator.clipboard.writeText(text).then(() => {
-        const hint = document.querySelector('.copy-hint');
-        const original = hint.innerText;
-        hint.innerText = "Copied!";
-        hint.style.opacity = '1';
-        setTimeout(() => {
-            hint.innerText = original;
-        }, 2000);
-        trackEvent('command-copied', 'Copied install command');
-    });
-}
-
-// ===============================
-// GITHUB BUTTON CLICK TRACKING
-// ===============================
-document.getElementById('github-btn')?.addEventListener('click', () => {
-    trackEvent('github-click-nav', 'Clicked GitHub button in nav');
-});
-
-document.querySelectorAll('footer a').forEach(link => {
-    link.addEventListener('click', () => {
-        const linkName = link.textContent.trim();
-        trackEvent('footer-click-' + linkName.toLowerCase(), 'Clicked ' + linkName + ' in footer');
-    });
-});
-
-// ===============================
-// SESSION SUMMARY
-// ===============================
 window.addEventListener('beforeunload', () => {
     analytics.track('session_end', {
         maxScroll: maxScroll,

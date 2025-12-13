@@ -193,6 +193,11 @@
                 display: none;
             }
 
+            .nav-right {
+                gap: 0.5rem;
+                /* Tighten gap on mobile */
+            }
+
             .logo {
                 margin-right: 0;
             }
@@ -317,6 +322,9 @@
 
         .cmd {
             color: var(--text-main);
+            word-break: break-word;
+            /* Ensure long commands wrap on mobile */
+            text-align: left;
         }
 
         .comment {
@@ -591,6 +599,117 @@
             box-shadow: 0 8px 25px rgba(124, 58, 237, 0.6);
             background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
         }
+
+        /* Zig-Zag Features */
+        .feature-section {
+            padding: 4rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6rem;
+        }
+
+        .feature-row {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+        }
+
+        .feature-row:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .feature-visual {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-visual img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-text h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .feature-text p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Keyboard Cheat Sheet */
+        .kb-cheat-sheet {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .kb-key-group {
+            text-align: center;
+        }
+
+        .kb-key {
+            display: block;
+            background: #2D2D2D;
+            border: 1px solid #444;
+            border-bottom: 3px solid #111;
+            border-radius: 8px;
+            width: 48px;
+            height: 48px;
+            line-height: 46px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            color: #fff;
+            margin: 0 auto 0.5rem;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s, box-shadow 0.1s, border-bottom 0.1s;
+        }
+
+        .kb-key:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid #111;
+        }
+
+        .kb-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 768px) {
+            .feature-row {
+                flex-direction: column;
+                gap: 2rem;
+                text-align: center;
+            }
+
+            .feature-row:nth-child(even) {
+                flex-direction: column;
+            }
+
+            .feature-text h3 {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -607,72 +726,68 @@
                 </div>
                 <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1);"></div>
                 <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=7C3AED&label=Downloads"
-                    alt="Downloads" style="height: 20px;" width="100" height="20">
-                <a href="https://github.com/Bharath-code/git-scope" class="github-link" target="_blank" id="github-btn">
-                    <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
-                        <path
-                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-                    </svg>
-                    <span id="star-count">GitHub</span>
+                    alt="Downloads" height="20">
+                <a href="https://github.com/Bharath-code/git-scope" target="_blank" style="text-decoration: none;">
+                    <img src="https://img.shields.io/github/stars/Bharath-code/git-scope?style=social"
+                        alt="GitHub Stars" height="20">
                 </a>
             </div>
         </nav>
 
         <main>
             <section class="hero">
-                <h1>Stop <span class="gradient-text">CD-ing.</span> <br> Start Coding.</h1>
+                <h1>Stop <span class="gradient-text">cd-ing.</span> <br> Start Coding.</h1>
                 <p class="subtitle">
-                    Git-Scope helps busy developers instantly find, filter, and manage 50+ repos so you can stay in your
+                    Git-Scope helps busy developers instantly find, filter, and manage their entire git universe so you
+                    can stay in your
                     flow state without endlessly <code>cd</code>-ing through nested directories.
                 </p>
-                <div style="margin-bottom: 2.5rem;">
-                    <a href="https://github.com/Bharath-code/git-scope" target="_blank" class="hero-cta-btn">
-                        <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 8px;">
-                            <path
-                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+
+                <!-- Simplified Install -->
+                <div class="install-section" style="margin-bottom: 2rem;">
+                    <div class="install-box" onclick="copyInstallCommand()"
+                        style="padding: 1rem; text-align: center; max-width: 500px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                        <span class="prompt">$</span>
+                        <span class="cmd" style="font-size: 1.1rem; font-weight: 600;">brew tap Bharath-code/tap && brew
+                            install git-scope</span>
+                        <svg id="copy-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"
+                            style="opacity: 0.5; margin-left: auto; transition: all 0.2s;">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
-                        Star on GitHub
-                    </a>
-                </div>
-
-                <div class="install-section">
-                    <div class="tabs">
-                        <button class="tab-btn active" onclick="switchTab('brew')">Homebrew (Mac/Linux)</button>
-                        <button class="tab-btn" onclick="switchTab('go')">Go Install (All)</button>
-                        <button class="tab-btn" onclick="switchTab('windows')">Windows</button>
-                        <button class="tab-btn" onclick="switchTab('manual')">Binary</button>
                     </div>
-
-                    <button class="install-box" onclick="copyCode()" aria-label="Copy install command">
-                        <span class="copy-hint">Click to copy</span>
-
-                        <div id="code-brew" class="code-block active">
-                            <div><span class="prompt">$</span><span class="cmd">brew tap Bharath-code/tap</span></div>
-                            <div><span class="prompt">$</span><span class="cmd">brew install git-scope</span></div>
-                        </div>
-
-                        <div id="code-go" class="code-block">
-                            <div><span class="prompt">$</span><span class="cmd">go install
-                                    github.com/Bharath-code/git-scope/cmd/git-scope@latest</span></div>
-                        </div>
-
-                        <div id="code-windows" class="code-block">
-                            <span class="comment"># Install or Update (PowerShell)</span>
-                            <div><span class="prompt">></span><span class="cmd">go install
-                                    github.com/Bharath-code/git-scope/cmd/git-scope@latest</span></div>
-                            <span class="comment"># Running this again updates to the latest version.</span>
-                        </div>
-
-                        <div id="code-manual" class="code-block">
-                            <span class="comment"># Download binary from Releases page, then:</span>
-                            <div><span class="prompt">$</span><span class="cmd">./git-scope</span></div>
-                        </div>
-                    </button>
-
-                    <div style="margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted)">
-                        <p>Supports Windows Powershell, WSL, Linux shells, and macOS.</p>
+                    <div style="margin-top: 1rem;">
+                        <a href="https://github.com/Bharath-code/git-scope/releases" target="_blank"
+                            style="color: var(--text-muted); font-size: 0.9rem; text-decoration: underline;">View
+                            Windows, Linux & Go Install</a>
                     </div>
                 </div>
+
+                <!-- Hero Demo (Moved Up) -->
+                <section class="demo-section" style="margin-top: 3rem; margin-bottom: 4rem;">
+                    <div class="window-frame">
+                        <div class="window-header">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                        </div>
+                        <img src="git-scope-demo-1.webp" alt="Git Scope Demo" loading="eager" width="1200" height="800"
+                            style="width: 100%; height: auto; display: block;" decoding="async">
+                    </div>
+                </section>
+
+                <!-- Social Proof Badges -->
+                <div
+                    style="margin-bottom: 4rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; opacity: 0.8;">
+                    <img src="https://img.shields.io/github/v/release/Bharath-code/git-scope?style=flat-square&color=8B5CF6&label=Latest%20Version"
+                        alt="Latest Version">
+                    <img src="https://img.shields.io/github/last-commit/Bharath-code/git-scope?style=flat-square&color=27272A"
+                        alt="Last Commit">
+                    <img src="https://img.shields.io/github/license/Bharath-code/git-scope?style=flat-square&color=27272A"
+                        alt="License">
+                </div>
+
             </section>
 
             <section class="value-prop" style="margin-bottom: 6rem; text-align: center;">
@@ -686,77 +801,108 @@
                     style="max-width: 700px; margin: 0 auto; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6;">
                     <p>Do you have 50+ git repos scattered across `~/code`, `~/projects`, and `~/work`? Finding that one
                         side-project from 3 months ago shouldn't take 5 minutes.</p>
-                    <div style="height: 1.5rem;"></div>
-                    <p>Git-Scope gives you a <strong style="color: var(--text-main);">God-mode view</strong> of your
-                        entire
-                        git universe. See what's dirty, what needs pushing, and jump into any repo instantly.</p>
-
-                    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                        <img src="https://img.shields.io/badge/Written_in-Go-00ADD8?style=flat-square&logo=go"
-                            alt="Written in Go" height="20">
-                        <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License"
-                            height="20">
-                        <img src="https://img.shields.io/badge/Speed-Blazing_Fast-f9bf2d?style=flat-square"
-                            alt="Blazing Fast" height="20">
-                    </div>
                 </div>
             </section>
 
-            <section class="demo-section">
-                <div class="window-frame">
-                    <div class="window-header">
-                        <div class="dot red"></div>
-                        <div class="dot yellow"></div>
-                        <div class="dot green"></div>
-                    </div>
-                    <picture>
-                        <source media="(max-width: 768px)" srcset="git-scope-demo-mobile-1.webp" type="image/webp">
-                        <source srcset="git-scope-demo-1.webp" type="image/webp">
-                        <img src="demo-static.png" alt="Git Scope Demo" loading="lazy" width="1200" height="800"
-                            style="width: 100%; height: auto; display: block;" decoding="async" fetchpriority="low">
-                    </picture>
-                </div>
-            </section>
+            <!-- Features Zig-Zag -->
+            <div class="features-section" id="features">
 
-            <div class="features" id="features">
-                <div class="card">
-                    <h3><span class="card-icon">⚡️</span> Instant Overview</h3>
-                    <p>Git-scope finds, parses, and caches your entire directory tree in milliseconds. It knows where
-                        your
-                        work is hidden.</p>
+                <!-- Feature 1 -->
+                <div class="feature-row">
+                    <div class="feature-visual">
+                        <picture>
+                            <source media="(max-width: 768px)" srcset="images/feature-search-mobile.webp"
+                                type="image/webp">
+                            <source srcset="images/feature-search-desktop.webp" type="image/webp">
+                            <img src="images/feature-search.png" alt="Fuzzy Search" loading="lazy">
+                        </picture>
+                    </div>
+                    <div class="feature-text">
+                        <h3><span style="color: var(--primary);">01.</span> Fuzzy Search</h3>
+                        <p>Lost a repo? Press <code>/</code> to search by name in real-time. Git-Scope indexes your
+                            entire workspace in milliseconds, so you can jump to any project instantly.</p>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3><span class="card-icon">🔍</span> Fuzzy Search</h3>
-                    <p>Lost a repo? Press <span class="key">/</span> to search by name or branch. Filter rows instantly
-                        as
-                        you type.</p>
+
+                <!-- Feature 2 -->
+                <div class="feature-row">
+                    <div class="feature-visual">
+                        <picture>
+                            <source media="(max-width: 768px)" srcset="images/feature-radar-mobile.webp"
+                                type="image/webp">
+                            <source srcset="images/feature-radar-desktop.webp" type="image/webp">
+                            <img src="images/feature-radar.png" alt="Dirty Radar" loading="lazy">
+                        </picture>
+                    </div>
+                    <div class="feature-text">
+                        <h3><span style="color: var(--primary);">02.</span> Dirty Radar</h3>
+                        <p>Press <code>f</code> to filter by status. Instantly see which repos have uncommitted changes
+                            or unpushed commits. Never leave code behind again.</p>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3><span class="card-icon">🛡️</span> Dirty Radar</h3>
-                    <p>Press <span class="key">f</span> to filter by status. See only valid work-in-progress and ignore
-                        clean repos.</p>
+
+                <!-- Feature 3 -->
+                <div class="feature-row">
+                    <div class="feature-visual">
+                        <picture>
+                            <source media="(max-width: 768px)" srcset="images/feature-stats-mobile.webp"
+                                type="image/webp">
+                            <source srcset="images/feature-stats-desktop.webp" type="image/webp">
+                            <img src="images/feature-stats.png" alt="Stats & Disk Usage" loading="lazy">
+                        </picture>
+                    </div>
+                    <div class="feature-text">
+                        <h3><span style="color: var(--primary);">03.</span> Stats & Visuals</h3>
+                        <p>Spot disk-hogging <code>node_modules</code> and visualize your coding activity. Press
+                            <code>d</code> for disk usage and <code>g</code> for your contribution heat map.
+                        </p>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3><span class="card-icon">⌨️</span> Keyboard Driven</h3>
-                    <p>Vim-style <span class="key">j</span> <span class="key">k</span> navigation. Press <span
-                            class="key">Enter</span> to launch your editor at the root.</p>
-                </div>
-                <div class="card">
-                    <h3><span class="card-icon">🌿</span> Contribution Graph</h3>
-                    <p>Press <span class="key">g</span> to see your local coding heat. Visualizes recent activity across
-                        all repos.</p>
-                </div>
-                <div class="card">
-                    <h3><span class="card-icon">💾</span> Disk Usage</h3>
-                    <p>Cleaning up? Press <span class="key">d</span> to spot `node_modules` black holes and heavy `.git`
-                        folders.</p>
-                </div>
-                <div class="card">
-                    <h3><span class="card-icon">⏰</span> Timeline</h3>
-                    <p>Forgot what you did yesterday? Press <span class="key">t</span> for a chronological feed of your
-                        work.</p>
-                </div>
+
             </div>
+
+            <!-- Keyboard Cheat Sheet -->
+            <section style="margin: 6rem 0; text-align: center;">
+                <h2 style="font-size: 2rem; margin-bottom: 2rem;">Vim-Style Efficiency</h2>
+                <div class="kb-cheat-sheet">
+                    <div class="kb-key-group">
+                        <span class="kb-key">j</span>
+                        <span class="kb-desc">Down</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key">k</span>
+                        <span class="kb-desc">Up</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key">/</span>
+                        <span class="kb-desc">Search</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key">f</span>
+                        <span class="kb-desc">Filter</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key">s</span>
+                        <span class="kb-desc">Sort</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key">c</span>
+                        <span class="kb-desc">Clear</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key">g</span>
+                        <span class="kb-desc">graph</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key">q</span>
+                        <span class="kb-desc">Quit</span>
+                    </div>
+                    <div class="kb-key-group">
+                        <span class="kb-key" style="width: auto; padding: 0 1rem;">Enter</span>
+                        <span class="kb-desc">Open</span>
+                    </div>
+                </div>
+            </section>
 
             <section class="roadmap" style="margin-bottom: 6rem; text-align: center;">
                 <p
