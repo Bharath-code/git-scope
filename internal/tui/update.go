@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os/exec"
 
+	"github.com/Bharath-code/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/stats"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/Bharath-code/git-scope/internal/model"
-	"github.com/Bharath-code/git-scope/internal/stats"
+	"mvdan.cc/sh/v3/shell"
 )
 
 // Update handles messages and updates the model
@@ -50,14 +51,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case openEditorMsg:
-		// Check if editor exists in PATH before trying to launch
-		_, err := exec.LookPath(m.cfg.Editor)
-		if err != nil {
-			m.statusMsg = fmt.Sprintf("❌ Editor '%s' not found. Press 'e' to change editor or install it first.", m.cfg.Editor)
+		// Parse editor command (handles "editor --flag" style configs)
+		fields, err := shell.Fields(m.cfg.Editor, nil)
+		if err != nil || len(fields) == 0 {
+			m.statusMsg = fmt.Sprintf("❌ Invalid editor command: '%s'", m.cfg.Editor)
 			return m, nil
 		}
-		
-		c := exec.Command(m.cfg.Editor, msg.path)
+		// Check if editor binary exists in PATH
+		_, err = exec.LookPath(fields[0])
+		if err != nil {
+			m.statusMsg = fmt.Sprintf("❌ Editor '%s' not found. Press 'e' to change editor or install it first.", fields[0])
+			return m, nil
+		}
+
+		args := append(fields[1:], msg.path)
+		c := exec.Command(fields[0], args...)
 		return m, tea.ExecProcess(c, func(err error) tea.Msg {
 			if err != nil {
 				return editorClosedMsg{err: err}
@@ -194,10 +202,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "e":
 			if m.state == StateReady {
-				// Check if editor exists
-				_, err := exec.LookPath(m.cfg.Editor)
-				if err != nil {
-					m.statusMsg = fmt.Sprintf("❌ Editor '%s' not found in PATH. Install it or edit ~/.config/git-scope/config.yml", m.cfg.Editor)
+				// Check if editor exists (parse command to get binary name)
+				fields, err := shell.Fields(m.cfg.Editor, nil)
+				if err != nil || len(fields) == 0 {
+					m.statusMsg = fmt.Sprintf("❌ Invalid editor command: '%s'", m.cfg.Editor)
+				} else if _, err := exec.LookPath(fields[0]); err != nil {
+					m.statusMsg = fmt.Sprintf("❌ Editor '%s' not found in PATH. Install it or edit ~/.config/git-scope/config.yml", fields[0])
 				} else {
 					m.statusMsg = fmt.Sprintf("✓ Editor: %s (edit config at ~/.config/git-scope/config.yml)", m.cfg.Editor)
 				}
