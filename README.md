@@ -3,6 +3,7 @@
 > **A fast TUI dashboard to view the git status of *all your repositories* in one place.** > Stop the `cd` → `git status` loop.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/Bharath-code/git-scope)](https://goreportcard.com/report/github.com/Bharath-code/git-scope)
+[![GitHub Release](https://img.shields.io/github/v/release/Bharath-code/git-scope?color=8B5CF6)](https://github.com/Bharath-code/git-scope/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/Bharath-code/git-scope)](https://github.com/Bharath-code/git-scope/stargazers)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/iam_pbk)
@@ -17,14 +18,19 @@ Get started in seconds.
 
 ### Homebrew (macOS/Linux)
 ```bash
-brew tap Bharath-code/tap
-brew install git-scope
+brew tap Bharath-code/tap && brew install git-scope
 ````
 ### Update
 ```bash
 brew upgrade git-scope
 ````
-### From Source (windows)
+
+### Universal Installer (macOS/Linux)
+```bash
+curl -sSL https://raw.githubusercontent.com/Bharath-code/git-scope/main/scripts/install.sh | sh
+```
+
+### From Source (Windows)
 
 ```bash
 go install github.com/Bharath-code/git-scope/cmd/git-scope@latest
@@ -145,5 +151,34 @@ I built `git-scope` to solve the **"Multi-Repo Blindness"** problem. It gives me
 
 MIT © [Bharath-code](https://github.com/Bharath-code)
 
-```
-```
+---
+
+## 🙏 Acknowledgements
+
+Built with these amazing open-source projects:
+
+- [Bubble Tea](https://github.com/charmbracelet/bubbletea) — The TUI framework
+- [Lip Gloss](https://github.com/charmbracelet/lipgloss) — Style definitions
+- [Bubbles](https://github.com/charmbracelet/bubbles) — TUI components (table, spinner, text input)
+
+---
+
+## ⭐ Star History
+
+<a href="https://star-history.com/#Bharath-code/git-scope&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Bharath-code/git-scope&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Bharath-code/git-scope&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Bharath-code/git-scope&type=Date" />
+ </picture>
+</a>
+
+---
+
+## 👥 Contributors
+
+<a href="https://github.com/Bharath-code/git-scope/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Bharath-code/git-scope" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
