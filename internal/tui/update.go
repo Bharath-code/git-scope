@@ -424,6 +424,19 @@ func (m Model) handleWorkspaceSwitchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		
 		return m, scanWorkspaceCmd(normalizedPath, m.cfg.Ignore)
 		
+	case "tab":
+		// Tab completion for directory paths
+		currentPath := m.workspaceInput.Value()
+		if currentPath != "" {
+			completedPath := workspace.CompleteDirectoryPath(currentPath)
+			if completedPath != currentPath {
+				m.workspaceInput.SetValue(completedPath)
+				// Move cursor to end
+				m.workspaceInput.CursorEnd()
+			}
+		}
+		return m, nil
+		
 	case "ctrl+c":
 		return m, tea.Quit
 	}

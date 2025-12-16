@@ -275,6 +275,7 @@ func (m Model) renderHelp() string {
 		// Workspace switch mode help
 		items = []string{
 			keyBinding("type", "path"),
+			keyBinding("tab", "complete"),
 			keyBinding("enter", "switch"),
 			keyBinding("esc", "cancel"),
 		}
@@ -351,7 +352,7 @@ func (m Model) renderWorkspaceModal() string {
 	// Footer hints
 	footer := lipgloss.NewStyle().
 		Foreground(mutedColor).
-		Render("\n\nEnter = scan   Esc = cancel")
+		Render("\n\nTab = complete   Enter = scan   Esc = cancel")
 
 	modalContent := title + "\n\n" + label + m.workspaceInput.View() + errorLine + footer
 	b.WriteString(modalStyle.Render(modalContent))
