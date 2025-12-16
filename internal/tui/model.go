@@ -23,6 +23,7 @@ const (
 	StateReady
 	StateError
 	StateSearching
+	StateWorkspaceSwitch
 )
 
 // SortMode represents different sorting options
@@ -66,6 +67,10 @@ type Model struct {
 	grassData    *stats.ContributionData
 	diskData     *stats.DiskUsageData
 	timelineData *stats.TimelineData
+	// Workspace switch state
+	workspaceInput   textinput.Model
+	workspaceError   string
+	activeWorkspace  string
 }
 
 // NewModel creates a new TUI model
@@ -115,19 +120,26 @@ func NewModel(cfg *config.Config) Model {
 	ti.CharLimit = 50
 	ti.Width = 30
 
+	// Create text input for workspace switch
+	wi := textinput.New()
+	wi.Placeholder = "~/projects or /path/to/dir"
+	wi.CharLimit = 200
+	wi.Width = 40
+
 	// Create spinner with Braille pattern
 	sp := spinner.New()
 	sp.Spinner = spinner.Dot
 	sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#7C3AED"))
 
 	return Model{
-		cfg:        cfg,
-		table:      t,
-		textInput:  ti,
-		spinner:    sp,
-		state:      StateLoading,
-		sortMode:   SortByDirty,
-		filterMode: FilterAll,
+		cfg:            cfg,
+		table:          t,
+		textInput:      ti,
+		workspaceInput: wi,
+		spinner:        sp,
+		state:          StateLoading,
+		sortMode:       SortByDirty,
+		filterMode:     FilterAll,
 	}
 }
 

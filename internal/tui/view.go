@@ -23,6 +23,8 @@ func (m Model) renderContent() string {
 		b.WriteString(m.renderError())
 	case StateReady, StateSearching:
 		b.WriteString(m.renderDashboard())
+	case StateWorkspaceSwitch:
+		b.WriteString(m.renderWorkspaceModal())
 	}
 
 	return b.String()
@@ -40,10 +42,18 @@ func (m Model) renderLoading() string {
 
 	b.WriteString(subtitleStyle.Render("Searching for git repos in:"))
 	b.WriteString("\n")
-	for _, root := range m.cfg.Roots {
+	
+	// Show workspace path if switching, otherwise show config roots
+	if m.activeWorkspace != "" {
 		b.WriteString(pathBulletStyle.Render("  → "))
-		b.WriteString(pathStyle.Render(root))
+		b.WriteString(pathStyle.Render(m.activeWorkspace))
 		b.WriteString("\n")
+	} else {
+		for _, root := range m.cfg.Roots {
+			b.WriteString(pathBulletStyle.Render("  → "))
+			b.WriteString(pathStyle.Render(root))
+			b.WriteString("\n")
+		}
 	}
 	b.WriteString("\n")
 
@@ -94,7 +104,7 @@ func (m Model) renderDashboard() string {
 
 	// Header with logo on its own line
 	logo := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#A78BFA")).Render("git-scope")
-	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v1.2.2")
+	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v1.3.0")
 	b.WriteString(logo + version)
 	b.WriteString("\n\n")
 
@@ -261,6 +271,13 @@ func (m Model) renderHelp() string {
 			keyBinding("enter", "apply"),
 			keyBinding("esc", "cancel"),
 		}
+	} else if m.state == StateWorkspaceSwitch {
+		// Workspace switch mode help
+		items = []string{
+			keyBinding("type", "path"),
+			keyBinding("enter", "switch"),
+			keyBinding("esc", "cancel"),
+		}
 	} else if m.activePanel != PanelNone {
 		// Panel active help
 		items = []string{
@@ -277,6 +294,7 @@ func (m Model) renderHelp() string {
 			keyBinding("↑↓", "nav"),
 			keyBinding("enter", "open"),
 			keyBinding("/", "search"),
+			keyBinding("a", "workspace"),
 			keyBinding("f", "filter"),
 			keyBinding("s", "sort"),
 			keyBinding("g", "grass"),
@@ -293,4 +311,54 @@ func (m Model) renderHelp() string {
 // keyBinding creates a styled key-action pair for the keybindings bar
 func keyBinding(key, action string) string {
 	return keyBindingKeyStyle.Render(key) + " " + action
+}
+
+// renderWorkspaceModal renders the workspace switch modal
+func (m Model) renderWorkspaceModal() string {
+	var b strings.Builder
+
+	// Header with logo
+	b.WriteString(compactLogo())
+	b.WriteString("\n\n")
+
+	// Modal box
+	modalStyle := lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#7C3AED")).
+		Padding(1, 2).
+		Width(50)
+
+	// Modal title
+	title := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#A78BFA")).
+		Bold(true).
+		Render("📁 Switch Workspace")
+
+	// Path input
+	label := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#7C3AED")).
+		Bold(true).
+		Render("Path: ")
+
+	// Error message if any
+	errorLine := ""
+	if m.workspaceError != "" {
+		errorLine = "\n" + lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#EF4444")).
+			Render("❌ " + m.workspaceError)
+	}
+
+	// Footer hints
+	footer := lipgloss.NewStyle().
+		Foreground(mutedColor).
+		Render("\n\nEnter = scan   Esc = cancel")
+
+	modalContent := title + "\n\n" + label + m.workspaceInput.View() + errorLine + footer
+	b.WriteString(modalStyle.Render(modalContent))
+
+	// Help bar
+	b.WriteString("\n\n")
+	b.WriteString(m.renderHelp())
+
+	return b.String()
 }

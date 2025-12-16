@@ -5,7 +5,9 @@ import (
 	"os/exec"
 
 	"github.com/Bharath-code/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/scan"
 	"github.com/Bharath-code/git-scope/internal/stats"
+	"github.com/Bharath-code/git-scope/internal/workspace"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -46,6 +48,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case scanErrorMsg:
+		m.state = StateError
+		m.err = msg.err
+		return m, nil
+
+	case workspaceScanCompleteMsg:
+		m.repos = msg.repos
+		m.state = StateReady
+		m.updateTable()
+		
+		// Show helpful message about switched workspace
+		if len(msg.repos) == 0 {
+			m.statusMsg = fmt.Sprintf("⚠️  No git repos found in %s", msg.workspacePath)
+		} else {
+			m.statusMsg = fmt.Sprintf("✓ Switched to %s (%d repos)", msg.workspacePath, len(msg.repos))
+		}
+		return m, nil
+
+	case workspaceScanErrorMsg:
 		m.state = StateError
 		m.err = msg.err
 		return m, nil
@@ -106,6 +126,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Handle search mode separately
 		if m.state == StateSearching {
 			return m.handleSearchMode(msg)
+		}
+		
+		// Handle workspace switch mode
+		if m.state == StateWorkspaceSwitch {
+			return m.handleWorkspaceSwitchMode(msg)
 		}
 		
 		// Normal mode key handling
@@ -263,6 +288,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.statusMsg = ""
 				return m, nil
 			}
+
+		case "a":
+			// Open workspace switch modal
+			if m.state == StateReady {
+				m.state = StateWorkspaceSwitch
+				m.workspaceInput.SetValue("")
+				m.workspaceInput.Focus()
+				m.workspaceError = ""
+				return m, textinput.Blink
+			}
 		}
 	}
 
@@ -352,5 +387,81 @@ func loadTimelineDataCmd(repos []model.Repo) tea.Cmd {
 	return func() tea.Msg {
 		data, _ := stats.GetTimeline(repos)
 		return timelineDataLoadedMsg{data: data}
+	}
+}
+
+// handleWorkspaceSwitchMode handles key events when in workspace switch mode
+func (m Model) handleWorkspaceSwitchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc":
+		// Cancel workspace switch
+		m.state = StateReady
+		m.workspaceInput.Blur()
+		m.workspaceError = ""
+		return m, nil
+		
+	case "enter":
+		// Validate and switch workspace
+		inputPath := m.workspaceInput.Value()
+		if inputPath == "" {
+			m.workspaceError = "Please enter a path"
+			return m, nil
+		}
+		
+		// Normalize the path (expand ~, resolve symlinks, validate)
+		normalizedPath, err := workspace.NormalizeWorkspacePath(inputPath)
+		if err != nil {
+			m.workspaceError = err.Error()
+			return m, nil
+		}
+		
+		// Switch to loading state and scan the new workspace
+		m.state = StateLoading
+		m.workspaceInput.Blur()
+		m.workspaceError = ""
+		m.activeWorkspace = normalizedPath
+		m.statusMsg = "🔄 Switching to " + normalizedPath + "..."
+		
+		return m, scanWorkspaceCmd(normalizedPath, m.cfg.Ignore)
+		
+	case "ctrl+c":
+		return m, tea.Quit
+	}
+	
+	// Update text input
+	var cmd tea.Cmd
+	m.workspaceInput, cmd = m.workspaceInput.Update(msg)
+	
+	// Clear error when typing
+	if m.workspaceError != "" {
+		m.workspaceError = ""
+	}
+	
+	return m, cmd
+}
+
+// workspaceScanCompleteMsg is sent when workspace scanning is complete
+type workspaceScanCompleteMsg struct {
+	repos         []model.Repo
+	workspacePath string
+}
+
+// workspaceScanErrorMsg is sent when workspace scanning fails
+type workspaceScanErrorMsg struct {
+	err error
+}
+
+// scanWorkspaceCmd scans a single workspace path for repositories
+func scanWorkspaceCmd(workspacePath string, ignore []string) tea.Cmd {
+	return func() tea.Msg {
+		repos, err := scan.ScanRoots([]string{workspacePath}, ignore)
+		if err != nil {
+			return workspaceScanErrorMsg{err: err}
+		}
+		
+		return workspaceScanCompleteMsg{
+			repos:         repos,
+			workspacePath: workspacePath,
+		}
 	}
 }
