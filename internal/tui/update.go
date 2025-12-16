@@ -3,8 +3,10 @@ package tui
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 
 	"github.com/Bharath-code/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/nudge"
 	"github.com/Bharath-code/git-scope/internal/scan"
 	"github.com/Bharath-code/git-scope/internal/stats"
 	"github.com/Bharath-code/git-scope/internal/workspace"
@@ -62,6 +64,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.statusMsg = fmt.Sprintf("⚠️  No git repos found in %s", msg.workspacePath)
 		} else {
 			m.statusMsg = fmt.Sprintf("✓ Switched to %s (%d repos)", msg.workspacePath, len(msg.repos))
+			
+			// Trigger star nudge after successful workspace switch
+			if nudge.ShouldShowNudge() && !m.nudgeShownThisSession {
+				m.showStarNudge = true
+				m.nudgeShownThisSession = true
+				nudge.MarkShown()
+			}
 		}
 		return m, nil
 
@@ -137,6 +146,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+
+		case "S":
+			// Open GitHub repo (Star nudge action)
+			if m.showStarNudge {
+				m.showStarNudge = false
+				nudge.MarkCompleted()
+				m.statusMsg = "⭐ Opening GitHub..."
+				return m, openBrowserCmd(nudge.GitHubRepoURL)
+			}
 
 		case "/":
 			// Enter search mode
@@ -289,7 +307,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-		case "a":
+		case "w":
 			// Open workspace switch modal
 			if m.state == StateReady {
 				m.state = StateWorkspaceSwitch
@@ -298,7 +316,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.workspaceError = ""
 				return m, textinput.Blink
 			}
-		}
+	}
+	}
+
+	// Dismiss star nudge on any key (if not already handled)
+	if m.showStarNudge {
+		m.showStarNudge = false
+		nudge.MarkDismissed()
 	}
 
 	// Update the table
@@ -476,5 +500,24 @@ func scanWorkspaceCmd(workspacePath string, ignore []string) tea.Cmd {
 			repos:         repos,
 			workspacePath: workspacePath,
 		}
+	}
+}
+
+// openBrowserCmd opens a URL in the default browser
+func openBrowserCmd(url string) tea.Cmd {
+	return func() tea.Msg {
+		var cmd *exec.Cmd
+		switch runtime.GOOS {
+		case "darwin":
+			cmd = exec.Command("open", url)
+		case "linux":
+			cmd = exec.Command("xdg-open", url)
+		case "windows":
+			cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+		default:
+			return nil
+		}
+		_ = cmd.Run()
+		return nil
 	}
 }

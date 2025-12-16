@@ -71,6 +71,9 @@ type Model struct {
 	workspaceInput   textinput.Model
 	workspaceError   string
 	activeWorkspace  string
+	// Star nudge state
+	showStarNudge         bool
+	nudgeShownThisSession bool
 }
 
 // NewModel creates a new TUI model

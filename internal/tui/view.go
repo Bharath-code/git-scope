@@ -153,6 +153,12 @@ func (m Model) renderDashboard() string {
 		b.WriteString("\n")
 	}
 
+	// Star nudge (if active)
+	if m.showStarNudge {
+		b.WriteString(m.renderStarNudge())
+		b.WriteString("\n")
+	}
+
 	// Legend
 	b.WriteString(m.renderLegend())
 	b.WriteString("\n")
@@ -295,7 +301,7 @@ func (m Model) renderHelp() string {
 			keyBinding("↑↓", "nav"),
 			keyBinding("enter", "open"),
 			keyBinding("/", "search"),
-			keyBinding("a", "workspace"),
+			keyBinding("w", "workspace"),
 			keyBinding("f", "filter"),
 			keyBinding("s", "sort"),
 			keyBinding("g", "grass"),
@@ -362,4 +368,20 @@ func (m Model) renderWorkspaceModal() string {
 	b.WriteString(m.renderHelp())
 
 	return b.String()
+}
+
+// renderStarNudge renders the subtle star nudge message in the footer
+func (m Model) renderStarNudge() string {
+	nudgeStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FCD34D")).
+		Italic(true)
+	
+	ctaStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#A78BFA")).
+		Bold(true)
+	
+	message := nudgeStyle.Render("✨ If git-scope helped you stay in flow, a GitHub star helps others discover it.")
+	cta := ctaStyle.Render(" (S) Open GitHub")
+	
+	return message + cta
 }
