@@ -256,6 +256,13 @@
             }
         }
 
+        /* Nav Badges - Enforce size override global img settings */
+        .nav-badge {
+            height: 20px !important;
+            width: auto;
+            vertical-align: middle;
+        }
+
         /* Hero */
         .hero {
             padding: 6rem 0 4rem;
@@ -632,9 +639,53 @@
             color: var(--primary);
         }
 
+        /* Hero Media Layout & Reordering */
+        .hero-media-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .install-section {
+            order: 1;
+            /* Default: Install first */
+        }
+
+        .demo-section {
+            order: 2;
+            /* Default: Demo second */
+            margin: 0 !important;
+            /* Reset existing margins */
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 0 1rem;
+            }
+
+            .hero-media-layout {
+                gap: 2rem;
+            }
+
+            .install-section {
+                order: 2;
+                /* Mobile: Install second (containing only email form) */
+            }
+
+            .demo-section {
+                order: 1;
+                /* Mobile: Demo first */
+            }
+
+            /* Hide Install Grid on Mobile */
+            .install-grid {
+                display: none;
+            }
+
+            #hero-install-options {
+                display: none;
             }
 
             nav {
@@ -869,6 +920,112 @@
                 font-size: 1.5rem;
             }
         }
+
+
+
+        /* Mobile Sticky Footer */
+        .mobile-sticky-footer {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(14, 14, 18, 0.95);
+            border-top: 1px solid var(--border);
+            padding: 1rem;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .mobile-footer-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: #2ea44f;
+            /* GitHub Green */
+            color: white;
+            font-weight: 600;
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-decoration: none;
+            gap: 0.5rem;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(46, 164, 79, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .mobile-footer-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Mobile Email Reminder */
+        .mobile-email-form {
+            display: none;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .email-form-container {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 100%;
+        }
+
+        .email-input {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .email-submit-btn {
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .email-submit-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-sticky-footer {
+                display: block;
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            }
+
+            /* Add some padding to body so content isn't hidden behind footer */
+            body {
+                padding-bottom: 80px;
+            }
+
+            .mobile-email-form {
+                display: block;
+            }
+
+            /* Raise back to top button above footer */
+            .back-to-top {
+                bottom: 90px;
+            }
+        }
     </style>
 </head>
 
@@ -896,11 +1053,11 @@
 
                 <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1);"></div>
                 <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=7C3AED&label=Downloads"
-                    alt="Downloads" height="20">
+                    alt="Downloads" height="20" class="nav-badge">
                 <a href="https://github.com/Bharath-code/git-scope" target="_blank" style="text-decoration: none;"
                     id="nav-github-link">
                     <img src="https://img.shields.io/github/stars/Bharath-code/git-scope?style=social"
-                        alt="GitHub Stars" height="20">
+                        alt="GitHub Stars" height="20" class="nav-badge">
                 </a>
             </div>
         </nav>
@@ -932,81 +1089,101 @@
                     </a>
                 </div>
 
-                <!-- Simplified Install -->
-                <div class="install-section" style="margin-bottom: 2rem;">
+                <!-- Hero Media Layout Wrapper -->
+                <div class="hero-media-layout">
 
-                    <div class="install-grid">
-                        <!-- Option 1: Homebrew -->
-                        <div class="install-option">
-                            <div class="install-heading">Homebrew</div>
-                            <div class="install-box" onclick="copyInstallCommand()"
-                                style="padding: 1rem; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                                <span class="prompt">$</span>
-                                <span class="cmd" style="font-size: 0.95rem; font-weight: 600;">brew tap
-                                    Bharath-code/tap &&
-                                    brew install git-scope</span>
-                                <svg id="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-copy"
-                                    style="opacity: 0.5; margin-left: auto; min-width: 16px;">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
+                    <!-- Simplified Install -->
+                    <div class="install-section">
+
+                        <div class="install-grid">
+                            <!-- Option 1: Homebrew -->
+                            <div class="install-option">
+                                <div class="install-heading">Homebrew</div>
+                                <div class="install-box" onclick="copyInstallCommand()"
+                                    style="padding: 1rem; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                    <span class="prompt">$</span>
+                                    <span class="cmd" style="font-size: 0.95rem; font-weight: 600;">brew tap
+                                        Bharath-code/tap &&
+                                        brew install git-scope</span>
+                                    <svg id="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="feather feather-copy"
+                                        style="opacity: 0.5; margin-left: auto; min-width: 16px;">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Option 2: Script -->
-                        <div class="install-option">
-                            <div class="install-heading">Universal Installer</div>
-                            <div class="install-box" onclick="copyScriptCommand()"
-                                style="padding: 1rem; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                                <span class="prompt">$</span>
-                                <span class="cmd" style="font-size: 0.95rem; font-weight: 600; word-break: break-all;">
-                                    <span class="desktop-only">curl -sSL
-                                        https://raw.githubusercontent.com/Bharath-code/git-scope/main/scripts/install.sh
-                                        | sh</span>
-                                    <span class="mobile-only">curl -sSL .../scripts/install.sh | sh</span>
-                                </span>
-                                <svg id="script-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-copy"
-                                    style="opacity: 0.5; margin-left: auto; min-width: 16px;">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                                <div id="script-copy-feedback"
-                                    style="font-size: 0.75rem; color: #27C93F; opacity: 0; transition: opacity 0.2s; position: absolute; bottom: 4px; right: 10px;">
+                            <!-- Option 2: Script -->
+                            <div class="install-option">
+                                <div class="install-heading">Universal Installer</div>
+                                <div class="install-box" onclick="copyScriptCommand()"
+                                    style="padding: 1rem; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                    <span class="prompt">$</span>
+                                    <span class="cmd"
+                                        style="font-size: 0.95rem; font-weight: 600; word-break: break-all;">
+                                        <span class="desktop-only">curl -sSL
+                                            https://raw.githubusercontent.com/Bharath-code/git-scope/main/scripts/install.sh
+                                            | sh</span>
+                                        <span class="mobile-only">curl -sSL .../scripts/install.sh | sh</span>
+                                    </span>
+                                    <svg id="script-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="feather feather-copy"
+                                        style="opacity: 0.5; margin-left: auto; min-width: 16px;">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    <div id="script-copy-feedback"
+                                        style="font-size: 0.75rem; color: #27C93F; opacity: 0; transition: opacity 0.2s; position: absolute; bottom: 4px; right: 10px;">
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div style="margin-top: 1rem;">
-                        <a href="https://github.com/Bharath-code/git-scope/releases" target="_blank"
-                            style="color: var(--text-muted); font-size: 0.9rem; text-decoration: underline;"
-                            id="hero-install-options">View Windows & Go Install</a>
-                    </div>
-                </div>
-
-                <!-- Hero Demo (Moved Up) -->
-                <section class="demo-section" style="margin-top: 3rem; margin-bottom: 4rem;">
-                    <div class="window-frame">
-                        <div class="window-header">
-                            <div class="dot red"></div>
-                            <div class="dot yellow"></div>
-                            <div class="dot green"></div>
+                        <!-- Mobile Email Reminder -->
+                        <div class="mobile-email-form">
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                Save for later? Email yourself the link.
+                            </p>
+                            <form action="https://formspree.io/f/mpwvgrvg" method="POST" class="email-form-container">
+                                <input type="email" name="email" class="email-input" placeholder="your@email.com"
+                                    required>
+                                <button type="submit" class="email-submit-btn">Send</button>
+                            </form>
                         </div>
-                        <picture>
-                            <source media="(max-width: 768px)" srcset="git-scope-demo-mobile-1.webp" type="image/webp">
-                            <img src="git-scope-demo-1.webp" alt="Git Scope Demo" loading="eager" width="1200"
-                                height="800" style="width: 100%; height: auto; display: block;" decoding="async">
-                        </picture>
+
+                        <div style="margin-top: 1rem;">
+                            <a href="https://github.com/Bharath-code/git-scope/releases" target="_blank"
+                                style="color: var(--text-muted); font-size: 0.9rem; text-decoration: underline;"
+                                id="hero-install-options">View Windows & Go Install</a>
+                        </div>
                     </div>
-                </section>
+
+                    <!-- Hero Demo (Moved Up) -->
+                    <section class="demo-section">
+                        <div class="window-frame">
+                            <div class="window-header">
+                                <div class="dot red"></div>
+                                <div class="dot yellow"></div>
+                                <div class="dot green"></div>
+                            </div>
+                            <picture>
+                                <source media="(max-width: 768px)" srcset="git-scope-demo-mobile-1.webp"
+                                    type="image/webp">
+                                <img src="git-scope-demo-1.webp" alt="Git Scope Demo" loading="eager" width="1200"
+                                    height="800" style="width: 100%; height: auto; display: block;" decoding="async">
+                            </picture>
+                        </div>
+                    </section>
+
+                </div>
+                <!-- End Hero Media Layout -->
 
                 <!-- Social Proof Badges -->
                 <div
-                    style="margin-bottom: 4rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; opacity: 0.8;">
+                    style="margin-bottom: 2rem; margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; opacity: 0.8;">
                     <img src="https://img.shields.io/github/v/release/Bharath-code/git-scope?style=flat-square&color=8B5CF6&label=Latest%20Version"
                         alt="Latest Version">
                     <img src="https://img.shields.io/github/last-commit/Bharath-code/git-scope?style=flat-square&color=27272A"
@@ -1254,6 +1431,17 @@
     </script>
 
     <script src="main.js" defer></script>
+
+    <!-- Mobile Sticky Footer -->
+    <div class="mobile-sticky-footer">
+        <a href="https://github.com/Bharath-code/git-scope" target="_blank" class="mobile-footer-btn">
+            <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+                <path
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            Star on GitHub to try on Desktop
+        </a>
+    </div>
 
 
 
