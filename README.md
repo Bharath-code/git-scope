@@ -73,6 +73,7 @@ git-scope -h
 
 ## ✨ Features
 
+  * **📁 Workspace Switch** — Switch root directories without quitting (`w`). Supports `~`, relative paths, and **symlinks**.
   * **🔍 Fuzzy Search** — Find any repo by name, path, or branch (`/`).
   * **🛡️ Dirty Filter** — Instantly show only repos with uncommitted changes (`f`).
   * **🚀 Editor Jump** — Open the selected repo in VSCode, Neovim, Vim, or Helix (`Enter`).
@@ -81,6 +82,7 @@ git-scope -h
   * **🌿 Contribution Graph** — GitHub-style local heatmap for your activity (`g`).
   * **💾 Disk Usage** — Visualize `.git` vs `node_modules` size (`d`).
   * **⏰ Timeline** — View recent activity across all projects (`t`).
+  * **🔗 Symlink Support** — Symlinked directories resolve transparently (great for Codespaces/devcontainers).
 
 -----
 
@@ -88,6 +90,7 @@ git-scope -h
 
 | Key | Action |
 | :--- | :--- |
+| `w` | **Switch Workspace** (with Tab completion) |
 | `/` | **Search** repositories (Fuzzy) |
 | `f` | **Filter** (Cycle: All / Dirty / Clean) |
 | `s` | Cycle **Sort** Mode |
@@ -142,6 +145,8 @@ I built `git-scope` to solve the **"Multi-Repo Blindness"** problem. It gives me
 
 ## 🗺️ Roadmap
 
+  - [x] In-app workspace switching with Tab completion
+  - [x] Symlink resolution for devcontainers/Codespaces
   - [ ] Background file watcher (real-time updates)
   - [ ] Quick actions (bulk pull/fetch)
   - [ ] Repo grouping (Service / Team / Stack)
