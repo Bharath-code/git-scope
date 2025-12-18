@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Bharath-code/git-scope/internal/browser"
 	"github.com/Bharath-code/git-scope/internal/config"
 	"github.com/Bharath-code/git-scope/internal/scan"
 	"github.com/Bharath-code/git-scope/internal/tui"
@@ -27,6 +28,7 @@ Commands:
   scan        Scan and print repos (JSON)
   scan-all    Full system scan from home directory (with stats)
   init        Create config file interactively
+  issue       Open git-scope GitHub issues page in browser
   help        Show this help
 
 Examples:
@@ -35,6 +37,7 @@ Examples:
   git-scope scan .             # Scan current directory (JSON)
   git-scope scan-all           # Find ALL repos on your system
   git-scope init               # Setup config interactively
+  git-scope issue              # Open GitHub issues page
 
 Flags:
 `, version)
@@ -61,7 +64,7 @@ func main() {
 	// Parse command and directories
 	if len(args) >= 1 {
 		switch args[0] {
-		case "scan", "tui", "help", "init", "scan-all", "-h", "--help", "-v", "--version":
+		case "scan", "tui", "help", "init", "scan-all", "issue", "-h", "--help", "-v", "--version":
 			cmd = args[0]
 			dirs = args[1:]
 		default:
@@ -86,6 +89,12 @@ func main() {
 	// Handle init command
 	if cmd == "init" {
 		runInit()
+		return
+	}
+
+	// Handle issue command
+	if cmd == "issue" {
+		runIssue()
 		return
 	}
 
@@ -291,6 +300,16 @@ func runInit() {
 	}
 	fmt.Printf("   Editor: %s\n", editor)
 	fmt.Println("\n🚀 Run 'git-scope' to launch the dashboard!")
+}
+
+// runIssue opens the git-scope GitHub issues page in the default browser
+func runIssue() {
+	issuesURL := "https://github.com/Bharath-code/git-scope/issues"
+	if err := browser.Open(issuesURL); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to open browser: %v\n", err)
+		fmt.Fprintf(os.Stderr, "You can visit the issues page manually at: %s\n", issuesURL)
+		os.Exit(1)
+	}
 }
 
 // runScanAll performs a full system scan starting from home directory

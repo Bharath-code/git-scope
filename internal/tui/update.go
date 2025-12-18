@@ -3,8 +3,8 @@ package tui
 import (
 	"fmt"
 	"os/exec"
-	"runtime"
 
+	"github.com/Bharath-code/git-scope/internal/browser"
 	"github.com/Bharath-code/git-scope/internal/model"
 	"github.com/Bharath-code/git-scope/internal/nudge"
 	"github.com/Bharath-code/git-scope/internal/scan"
@@ -506,18 +506,7 @@ func scanWorkspaceCmd(workspacePath string, ignore []string) tea.Cmd {
 // openBrowserCmd opens a URL in the default browser
 func openBrowserCmd(url string) tea.Cmd {
 	return func() tea.Msg {
-		var cmd *exec.Cmd
-		switch runtime.GOOS {
-		case "darwin":
-			cmd = exec.Command("open", url)
-		case "linux":
-			cmd = exec.Command("xdg-open", url)
-		case "windows":
-			cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
-		default:
-			return nil
-		}
-		_ = cmd.Run()
+		_ = browser.Open(url)
 		return nil
 	}
 }
