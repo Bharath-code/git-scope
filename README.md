@@ -47,10 +47,17 @@ Simply run it in any directory containing your projects:
 ```bash
 git-scope
 ```
-#### Help
+
+#### Commands
 ```bash
-git-scope -h
+git-scope              # Launch TUI dashboard
+git-scope init         # Create config file interactively
+git-scope scan         # Scan and print repos (JSON)
+git-scope scan-all     # Full system scan from home directory
+git-scope issue        # Open GitHub issues page in browser
+git-scope -h           # Show help
 ```
+
 *By default, it recursively scans the current directory. You can configure permanent root paths later.*
 
 -----
