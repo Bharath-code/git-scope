@@ -253,6 +253,18 @@ func (m Model) renderStats() string {
 	sortHint := hintStyle.Render(" (s)")
 	stats = append(stats, sortBadge+sortHint)
 
+	// Pagination indicator (only show if more than one page)
+	totalPages := m.getTotalPages()
+	if totalPages > 1 {
+		pageBadge := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFFFFF")).
+			Background(lipgloss.Color("#10B981")).
+			Padding(0, 1).
+			Render(fmt.Sprintf("📄 %d/%d", m.currentPage+1, totalPages))
+		pageHint := hintStyle.Render(" ([])") 
+		stats = append(stats, pageBadge+pageHint)
+	}
+
 	return lipgloss.JoinHorizontal(lipgloss.Center, stats...)
 }
 
@@ -299,6 +311,7 @@ func (m Model) renderHelp() string {
 		// Normal mode help - Tuimorphic style
 		items = []string{
 			keyBinding("↑↓", "nav"),
+			keyBinding("[]", "page"),
 			keyBinding("enter", "open"),
 			keyBinding("/", "search"),
 			keyBinding("w", "workspace"),

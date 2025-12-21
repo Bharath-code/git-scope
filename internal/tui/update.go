@@ -37,6 +37,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case scanCompleteMsg:
 		m.repos = msg.repos
 		m.state = StateReady
+		m.resetPage()
 		m.updateTable()
 		
 		// Show helpful message if no repos found
@@ -57,6 +58,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case workspaceScanCompleteMsg:
 		m.repos = msg.repos
 		m.state = StateReady
+		m.resetPage()
 		m.updateTable()
 		
 		// Show helpful message about switched workspace
@@ -186,6 +188,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Cycle through filter modes
 			if m.state == StateReady {
 				m.filterMode = (m.filterMode + 1) % 3
+				m.resetPage()
 				m.updateTable()
 				m.statusMsg = "Filter: " + m.GetFilterModeName()
 				return m, nil
@@ -194,6 +197,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "s":
 			if m.state == StateReady {
 				m.sortMode = (m.sortMode + 1) % 4
+				m.resetPage()
 				m.updateTable()
 				m.statusMsg = "Sorted by: " + m.GetSortModeName()
 				return m, nil
@@ -202,6 +206,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "1":
 			if m.state == StateReady {
 				m.sortMode = SortByDirty
+				m.resetPage()
 				m.updateTable()
 				m.statusMsg = "Sorted by: Dirty First"
 				return m, nil
@@ -210,6 +215,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "2":
 			if m.state == StateReady {
 				m.sortMode = SortByName
+				m.resetPage()
 				m.updateTable()
 				m.statusMsg = "Sorted by: Name"
 				return m, nil
@@ -218,6 +224,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "3":
 			if m.state == StateReady {
 				m.sortMode = SortByBranch
+				m.resetPage()
 				m.updateTable()
 				m.statusMsg = "Sorted by: Branch"
 				return m, nil
@@ -226,6 +233,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "4":
 			if m.state == StateReady {
 				m.sortMode = SortByLastCommit
+				m.resetPage()
 				m.updateTable()
 				m.statusMsg = "Sorted by: Recent"
 				return m, nil
@@ -237,6 +245,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.searchQuery = ""
 				m.textInput.SetValue("") // Also reset the text input
 				m.filterMode = FilterAll
+				m.resetPage()
 				m.resizeTable()
 				m.updateTable()
 				m.statusMsg = "Filters cleared"
@@ -316,6 +325,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.workspaceError = ""
 				return m, textinput.Blink
 			}
+
+		case "[":
+			// Previous page
+			if m.state == StateReady && m.canGoPrev() {
+				m.currentPage--
+				m.updateTable()
+				m.statusMsg = fmt.Sprintf("Page %d of %d", m.currentPage+1, m.getTotalPages())
+				return m, nil
+			}
+
+		case "]":
+			// Next page
+			if m.state == StateReady && m.canGoNext() {
+				m.currentPage++
+				m.updateTable()
+				m.statusMsg = fmt.Sprintf("Page %d of %d", m.currentPage+1, m.getTotalPages())
+				return m, nil
+			}
 	}
 	}
 
@@ -347,6 +374,7 @@ func (m Model) handleSearchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.state = StateReady
 		m.resizeTable()
 		m.textInput.Blur()
+		m.resetPage()
 		m.updateTable()
 		if m.searchQuery != "" {
 			m.statusMsg = "Searching: " + m.searchQuery

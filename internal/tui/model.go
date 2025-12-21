@@ -74,6 +74,9 @@ type Model struct {
 	// Star nudge state
 	showStarNudge         bool
 	nudgeShownThisSession bool
+	// Pagination state
+	currentPage int
+	pageSize    int
 }
 
 // NewModel creates a new TUI model
@@ -143,6 +146,8 @@ func NewModel(cfg *config.Config) Model {
 		state:          StateLoading,
 		sortMode:       SortByDirty,
 		filterMode:     FilterAll,
+		currentPage:    0,
+		pageSize:       15,
 	}
 }
 
@@ -157,9 +162,13 @@ func (m Model) GetSelectedRepo() *model.Repo {
 		return nil
 	}
 	
+	// Get the cursor position within the current page
 	cursor := m.table.Cursor()
-	if cursor >= 0 && cursor < len(m.sortedRepos) {
-		return &m.sortedRepos[cursor]
+	// Calculate the actual index in sortedRepos
+	actualIndex := m.currentPage*m.pageSize + cursor
+	
+	if actualIndex >= 0 && actualIndex < len(m.sortedRepos) {
+		return &m.sortedRepos[actualIndex]
 	}
 	return nil
 }
@@ -230,7 +239,50 @@ func (m *Model) sortRepos() {
 func (m *Model) updateTable() {
 	m.applyFilter()
 	m.sortRepos()
-	m.table.SetRows(reposToRows(m.sortedRepos))
+	m.table.SetRows(reposToRows(m.getCurrentPageRepos()))
+}
+
+// getTotalPages returns the total number of pages
+func (m Model) getTotalPages() int {
+	if len(m.sortedRepos) == 0 {
+		return 1
+	}
+	return (len(m.sortedRepos) + m.pageSize - 1) / m.pageSize
+}
+
+// getCurrentPageRepos returns repos for the current page
+func (m Model) getCurrentPageRepos() []model.Repo {
+	if len(m.sortedRepos) == 0 {
+		return []model.Repo{}
+	}
+	
+	start := m.currentPage * m.pageSize
+	end := start + m.pageSize
+	
+	if start >= len(m.sortedRepos) {
+		start = 0
+		end = m.pageSize
+	}
+	if end > len(m.sortedRepos) {
+		end = len(m.sortedRepos)
+	}
+	
+	return m.sortedRepos[start:end]
+}
+
+// canGoPrev returns true if there's a previous page
+func (m Model) canGoPrev() bool {
+	return m.currentPage > 0
+}
+
+// canGoNext returns true if there's a next page
+func (m Model) canGoNext() bool {
+	return m.currentPage < m.getTotalPages()-1
+}
+
+// resetPage resets pagination to first page
+func (m *Model) resetPage() {
+	m.currentPage = 0
 }
 
 // GetSortModeName returns the display name of current sort mode
