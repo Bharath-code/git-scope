@@ -83,6 +83,7 @@ git-scope -h           # Show help
   * **📁 Workspace Switch** — Switch root directories without quitting (`w`). Supports `~`, relative paths, and **symlinks**.
   * **🔍 Fuzzy Search** — Find any repo by name, path, or branch (`/`).
   * **🛡️ Dirty Filter** — Instantly show only repos with uncommitted changes (`f`).
+  * **📄 Pagination** — Navigate large repo lists with page-by-page browsing (`[` / `]`). Shows 15 repos per page with a dynamic page indicator.
   * **🚀 Editor Jump** — Open the selected repo in VSCode, Neovim, Vim, or Helix (`Enter`).
   * **⚡ Blazing Fast** — JSON caching ensures \~10ms launch time even with 50+ repos.
   * **📊 Dashboard Stats** — See branch name, staged/unstaged counts, and last commit time.
@@ -102,6 +103,7 @@ git-scope -h           # Show help
 | `f` | **Filter** (Cycle: All / Dirty / Clean) |
 | `s` | Cycle **Sort** Mode |
 | `1`–`4` | Sort by: Dirty / Name / Branch / Recent |
+| `[` / `]` | **Page Navigation** (Previous / Next) |
 | `Enter` | **Open** repo in Editor |
 | `c` | **Clear** search & filters |
 | `r` | **Rescan** directories |
