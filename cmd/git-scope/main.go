@@ -217,10 +217,10 @@ func getSmartDefaults() []string {
 // runInit creates a config file interactively
 func runInit() {
 	configPath := config.DefaultConfigPath()
-	
+
 	fmt.Println("git-scope init — Setup your configuration")
 	fmt.Println()
-	
+
 	// Check if config already exists
 	if config.ConfigExists(configPath) {
 		fmt.Printf("Config file already exists at: %s\n", configPath)
@@ -235,7 +235,7 @@ func runInit() {
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	
+
 	// Get directories
 	fmt.Println("Enter directories to scan for git repos (one per line, empty line to finish):")
 	fmt.Println()
@@ -246,7 +246,7 @@ func runInit() {
 	fmt.Println()
 	fmt.Println("Examples: ~/code, ~/projects, ~/work")
 	fmt.Println()
-	
+
 	dirs := []string{}
 	for {
 		fmt.Print("> ")

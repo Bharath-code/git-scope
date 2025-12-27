@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Bharath-code/git-scope/internal/stats"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // PanelType represents which panel is currently active
@@ -45,7 +45,7 @@ var (
 			MarginBottom(1)
 
 	panelSubtitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#8b949e"))
+				Foreground(lipgloss.Color("#8b949e"))
 
 	panelMutedStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#6e7681"))
@@ -128,7 +128,7 @@ func renderGrassPanel(data *stats.ContributionData, width, height int) string {
 			if day < len(week) {
 				dateStr := week[day]
 				date, _ := stats.ParseDate(dateStr)
-				
+
 				// Don't show future dates
 				if date.After(time.Now()) {
 					b.WriteString("  ")
@@ -202,14 +202,14 @@ func getPanelHelp(panel PanelType) string {
 
 // Disk usage color palette (warm gradient for size visualization)
 var (
-	diskBarLow    = lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e")) // Green - small
-	diskBarMed    = lipgloss.NewStyle().Foreground(lipgloss.Color("#eab308")) // Yellow - medium
-	diskBarHigh   = lipgloss.NewStyle().Foreground(lipgloss.Color("#f97316")) // Orange - large
-	diskBarMax    = lipgloss.NewStyle().Foreground(lipgloss.Color("#ef4444")) // Red - huge
-	diskNameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF"))
-	diskSizeStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#A78BFA")).Bold(true)
+	diskBarLow        = lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e")) // Green - small
+	diskBarMed        = lipgloss.NewStyle().Foreground(lipgloss.Color("#eab308")) // Yellow - medium
+	diskBarHigh       = lipgloss.NewStyle().Foreground(lipgloss.Color("#f97316")) // Orange - large
+	diskBarMax        = lipgloss.NewStyle().Foreground(lipgloss.Color("#ef4444")) // Red - huge
+	diskNameStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF"))
+	diskSizeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#A78BFA")).Bold(true)
 	diskNodeSizeStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#F97316")).Bold(true) // Orange for node_modules value
-	
+
 	// Separate colors for git and node_modules
 	diskBarGit  = lipgloss.NewStyle().Foreground(lipgloss.Color("#8B5CF6")) // Purple for .git
 	diskBarNode = lipgloss.NewStyle().Foreground(lipgloss.Color("#F97316")) // Orange for node_modules
@@ -235,7 +235,7 @@ func renderDiskPanel(data *stats.DiskUsageData, width, height int) string {
 	b.WriteString(diskSizeStyle.Render(stats.FormatBytes(data.TotalSize)))
 	b.WriteString(panelMutedStyle.Render(" total"))
 	b.WriteString("\n")
-	
+
 	// Show breakdown if we have node_modules
 	if data.HasNodeModules {
 		b.WriteString(diskBarGit.Render("█"))
@@ -257,7 +257,7 @@ func renderDiskPanel(data *stats.DiskUsageData, width, height int) string {
 	if maxRows > 12 {
 		maxRows = 12
 	}
-	
+
 	barWidth := width - 35 // Leave more room for name and size
 	if barWidth < 8 {
 		barWidth = 8
@@ -285,12 +285,12 @@ func renderDiskPanel(data *stats.DiskUsageData, width, height int) string {
 		// Calculate bar lengths
 		gitBarLen := 0
 		nodeBarLen := 0
-		
+
 		if data.MaxSize > 0 {
 			gitBarLen = int(float64(repo.GitSize) / float64(data.MaxSize) * float64(barWidth))
 			nodeBarLen = int(float64(repo.NodeModulesSize) / float64(data.MaxSize) * float64(barWidth))
 		}
-		
+
 		if gitBarLen < 1 && repo.GitSize > 0 {
 			gitBarLen = 1
 		}
@@ -374,7 +374,7 @@ func renderTimelinePanel(data *stats.TimelineData, width, height int) string {
 			if currentDayLabel != "" {
 				b.WriteString("\n")
 			}
-			
+
 			var dayStyle lipgloss.Style
 			switch entry.DayLabel {
 			case "Today":
@@ -384,7 +384,7 @@ func renderTimelinePanel(data *stats.TimelineData, width, height int) string {
 			default:
 				dayStyle = timelineOlderStyle
 			}
-			
+
 			b.WriteString(dayStyle.Render("● " + entry.DayLabel))
 			b.WriteString("\n")
 			currentDayLabel = entry.DayLabel
@@ -400,7 +400,7 @@ func renderTimelinePanel(data *stats.TimelineData, width, height int) string {
 		b.WriteString("  ")
 		b.WriteString(timelineRepoStyle.Render(name))
 		b.WriteString(" ")
-		
+
 		branch := entry.Branch
 		if len(branch) > 10 {
 			branch = branch[:9] + "…"

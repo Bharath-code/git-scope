@@ -39,7 +39,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = StateReady
 		m.resetPage()
 		m.updateTable()
-		
+
 		// Show helpful message if no repos found
 		if len(msg.repos) == 0 {
 			m.statusMsg = fmt.Sprintf("⚠️  No git repos found in configured directories. Press 'r' to rescan or run 'git-scope init' to configure.")
@@ -60,13 +60,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = StateReady
 		m.resetPage()
 		m.updateTable()
-		
+
 		// Show helpful message about switched workspace
 		if len(msg.repos) == 0 {
 			m.statusMsg = fmt.Sprintf("⚠️  No git repos found in %s", msg.workspacePath)
 		} else {
 			m.statusMsg = fmt.Sprintf("✓ Switched to %s (%d repos)", msg.workspacePath, len(msg.repos))
-			
+
 			// Trigger star nudge after successful workspace switch
 			if nudge.ShouldShowNudge() && !m.nudgeShownThisSession {
 				m.showStarNudge = true
@@ -138,12 +138,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.state == StateSearching {
 			return m.handleSearchMode(msg)
 		}
-		
+
 		// Handle workspace switch mode
 		if m.state == StateWorkspaceSwitch {
 			return m.handleWorkspaceSwitchMode(msg)
 		}
-		
+
 		// Normal mode key handling
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -343,7 +343,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.statusMsg = fmt.Sprintf("Page %d of %d", m.currentPage+1, m.getTotalPages())
 				return m, nil
 			}
-	}
+		}
 	}
 
 	// Dismiss star nudge on any key (if not already handled)
@@ -367,7 +367,7 @@ func (m Model) handleSearchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.resizeTable()
 		m.textInput.Blur()
 		return m, nil
-		
+
 	case "enter":
 		// Apply search
 		m.searchQuery = m.textInput.Value()
@@ -382,19 +382,19 @@ func (m Model) handleSearchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.statusMsg = "Search cleared"
 		}
 		return m, nil
-		
+
 	case "ctrl+c":
 		return m, tea.Quit
 	}
-	
+
 	// Update text input
 	var cmd tea.Cmd
 	m.textInput, cmd = m.textInput.Update(msg)
-	
+
 	// Live search as you type
 	m.searchQuery = m.textInput.Value()
 	m.updateTable()
-	
+
 	return m, cmd
 }
 
@@ -451,7 +451,7 @@ func (m Model) handleWorkspaceSwitchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.workspaceInput.Blur()
 		m.workspaceError = ""
 		return m, nil
-		
+
 	case "enter":
 		// Validate and switch workspace
 		inputPath := m.workspaceInput.Value()
@@ -459,23 +459,23 @@ func (m Model) handleWorkspaceSwitchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.workspaceError = "Please enter a path"
 			return m, nil
 		}
-		
+
 		// Normalize the path (expand ~, resolve symlinks, validate)
 		normalizedPath, err := workspace.NormalizeWorkspacePath(inputPath)
 		if err != nil {
 			m.workspaceError = err.Error()
 			return m, nil
 		}
-		
+
 		// Switch to loading state and scan the new workspace
 		m.state = StateLoading
 		m.workspaceInput.Blur()
 		m.workspaceError = ""
 		m.activeWorkspace = normalizedPath
 		m.statusMsg = "🔄 Switching to " + normalizedPath + "..."
-		
+
 		return m, scanWorkspaceCmd(normalizedPath, m.cfg.Ignore)
-		
+
 	case "tab":
 		// Tab completion for directory paths
 		currentPath := m.workspaceInput.Value()
@@ -488,20 +488,20 @@ func (m Model) handleWorkspaceSwitchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-		
+
 	case "ctrl+c":
 		return m, tea.Quit
 	}
-	
+
 	// Update text input
 	var cmd tea.Cmd
 	m.workspaceInput, cmd = m.workspaceInput.Update(msg)
-	
+
 	// Clear error when typing
 	if m.workspaceError != "" {
 		m.workspaceError = ""
 	}
-	
+
 	return m, cmd
 }
 
@@ -523,7 +523,7 @@ func scanWorkspaceCmd(workspacePath string, ignore []string) tea.Cmd {
 		if err != nil {
 			return workspaceScanErrorMsg{err: err}
 		}
-		
+
 		return workspaceScanCompleteMsg{
 			repos:         repos,
 			workspacePath: workspacePath,

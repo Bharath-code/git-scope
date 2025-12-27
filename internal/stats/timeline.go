@@ -21,9 +21,9 @@ type TimelineEntry struct {
 	Path       string
 	Branch     string
 	LastCommit time.Time
-	Message    string  // Last commit message
-	TimeAgo    string  // Human-readable time ago
-	DayLabel   string  // "Today", "Yesterday", "2 days ago", etc.
+	Message    string // Last commit message
+	TimeAgo    string // Human-readable time ago
+	DayLabel   string // "Today", "Yesterday", "2 days ago", etc.
 }
 
 // GetTimeline gets recent activity timeline sorted by last commit
