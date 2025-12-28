@@ -42,7 +42,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Show helpful message if no repos found
 		if len(msg.repos) == 0 {
-			m.statusMsg = fmt.Sprintf("⚠️  No git repos found in configured directories. Press 'r' to rescan or run 'git-scope init' to configure.")
+			m.statusMsg = "⚠️  No git repos found in configured directories. Press 'r' to rescan or run 'git-scope init' to configure."
 		} else if msg.fromCache {
 			m.statusMsg = fmt.Sprintf("✓ Loaded %d repos from cache", len(msg.repos))
 		} else {
