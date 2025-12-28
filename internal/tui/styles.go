@@ -21,11 +21,8 @@ var (
 	errorColor = lipgloss.Color("#ef4444") // Red - error
 
 	// Background layers (dark theme - GitHub style)
-	bgDark       = lipgloss.Color("#0d1117") // Darkest - main bg
-	bgPanel      = lipgloss.Color("#161b22") // Panel backgrounds
-	bgSurface    = lipgloss.Color("#21262d") // Elevated surfaces
-	borderColor  = lipgloss.Color("#30363d") // Subtle borders
-	borderActive = lipgloss.Color("#7C3AED") // Active/focused borders
+	bgSurface   = lipgloss.Color("#21262d") // Elevated surfaces
+	borderColor = lipgloss.Color("#30363d") // Subtle borders
 
 	// Text hierarchy
 	textPrimary   = lipgloss.Color("#f0f6fc") // Primary text
@@ -33,11 +30,8 @@ var (
 	textTertiary  = lipgloss.Color("#6e7681") // Tertiary/hints
 
 	// Legacy aliases for compatibility
-	bgColor      = bgPanel
-	surfaceColor = bgSurface
-	textColor    = textPrimary
-	mutedColor   = textSecondary
-	dangerColor  = errorColor
+	textColor  = textPrimary
+	mutedColor = textSecondary
 )
 
 // Application styles
@@ -53,19 +47,6 @@ var (
 			Background(primaryColor).
 			Padding(0, 2).
 			MarginBottom(1)
-
-	// Logo ASCII art style
-	logoStyle = lipgloss.NewStyle().
-			Foreground(primaryColor).
-			Bold(true)
-
-	// Header bar style (logo + version)
-	headerBarStyle = lipgloss.NewStyle().
-			Foreground(primaryDim).
-			Bold(true)
-
-	versionStyle = lipgloss.NewStyle().
-			Foreground(textTertiary)
 
 	// Subtitle with stats
 	subtitleStyle = lipgloss.NewStyle().
@@ -90,18 +71,6 @@ var (
 			Background(cleanColor).
 			Padding(0, 1).
 			Bold(true)
-
-	// Table styles - bordered container
-	tableContainerStyle = lipgloss.NewStyle().
-				BorderStyle(lipgloss.RoundedBorder()).
-				BorderForeground(borderColor).
-				Padding(0, 1)
-
-	// Dashboard border style
-	dashboardBorderStyle = lipgloss.NewStyle().
-				BorderStyle(lipgloss.RoundedBorder()).
-				BorderForeground(borderColor).
-				Padding(0, 1)
 
 	// Keybindings bar styles (Tuimorphic - always visible at bottom)
 	keyBindingsBarStyle = lipgloss.NewStyle().
@@ -152,9 +121,6 @@ var (
 			Foreground(secondaryColor).
 			Bold(true)
 
-	loadingSpinnerStyle = lipgloss.NewStyle().
-				Foreground(primaryColor)
-
 	// Scanning paths list
 	pathStyle = lipgloss.NewStyle().
 			Foreground(textColor).
@@ -163,16 +129,6 @@ var (
 	pathBulletStyle = lipgloss.NewStyle().
 			Foreground(primaryColor).
 			Bold(true)
-
-	// Repo row indicators
-	dirtyIndicator = lipgloss.NewStyle().
-			Foreground(dirtyColor).
-			Bold(true).
-			Render("●")
-
-	cleanIndicator = lipgloss.NewStyle().
-			Foreground(cleanColor).
-			Render("○")
 
 	// Compact legend styles
 	dirtyDotStyle = lipgloss.NewStyle().
@@ -189,16 +145,6 @@ var (
 // Help item creates a styled help key-description pair
 func helpItem(key, desc string) string {
 	return helpKeyStyle.Render(key) + helpDescStyle.Render(" "+desc)
-}
-
-// Logo returns the ASCII art logo
-func logo() string {
-	return logoStyle.Render(`
-  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-  ┃   ╔═╗╦╔╦╗  ╔═╗╔═╗╔═╗╔═╗╔═╗   ┃
-  ┃   ║ ╦║ ║───╚═╗║  ║ ║╠═╝║╣    ┃
-  ┃   ╚═╝╩ ╩   ╚═╝╚═╝╚═╝╩  ╚═╝   ┃
-  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛`)
 }
 
 // Simpler logo for compact mode

@@ -10,22 +10,22 @@ import (
 
 // DiskUsageData holds disk usage information for all repos
 type DiskUsageData struct {
-	Repos           []RepoDiskUsage
-	TotalGitSize    int64
-	TotalNodeSize   int64
-	TotalSize       int64
-	MaxSize         int64
-	RepoCount       int
-	HasNodeModules  bool
+	Repos          []RepoDiskUsage
+	TotalGitSize   int64
+	TotalNodeSize  int64
+	TotalSize      int64
+	MaxSize        int64
+	RepoCount      int
+	HasNodeModules bool
 }
 
 // RepoDiskUsage holds disk usage for a single repo
 type RepoDiskUsage struct {
-	Name           string
-	Path           string
-	GitSize        int64  // Size of .git folder in bytes
-	NodeModulesSize int64  // Size of node_modules folder in bytes
-	TotalSize      int64  // Combined size
+	Name            string
+	Path            string
+	GitSize         int64 // Size of .git folder in bytes
+	NodeModulesSize int64 // Size of node_modules folder in bytes
+	TotalSize       int64 // Combined size
 }
 
 // GetDiskUsage calculates .git and node_modules folder sizes for all repos

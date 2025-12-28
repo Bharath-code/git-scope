@@ -36,12 +36,12 @@ var smartIgnorePatterns = []string{
 func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 	// Build ignore set from user config + smart defaults
 	ignoreSet := make(map[string]struct{}, len(ignore)+len(smartIgnorePatterns))
-	
+
 	// Add user-defined ignores
 	for _, pattern := range ignore {
 		ignoreSet[pattern] = struct{}{}
 	}
-	
+
 	// Add smart defaults (always apply for performance)
 	for _, pattern := range smartIgnorePatterns {
 		ignoreSet[pattern] = struct{}{}
@@ -54,7 +54,7 @@ func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 	for _, root := range roots {
 		// Expand ~ and environment variables
 		root = expandPath(root)
-		
+
 		// Check if root exists
 		if _, err := os.Stat(root); os.IsNotExist(err) {
 			continue
@@ -77,7 +77,7 @@ func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 				// Found a .git directory
 				if d.IsDir() && d.Name() == ".git" {
 					repoPath := filepath.Dir(path)
-					
+
 					// Resolve to absolute path to get proper repo name
 					// This handles cases where path is "." or relative
 					absPath, err := filepath.Abs(repoPath)

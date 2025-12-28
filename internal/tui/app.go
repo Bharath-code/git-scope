@@ -3,11 +3,11 @@ package tui
 import (
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Bharath-code/git-scope/internal/cache"
 	"github.com/Bharath-code/git-scope/internal/config"
 	"github.com/Bharath-code/git-scope/internal/model"
 	"github.com/Bharath-code/git-scope/internal/scan"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Cache max age - use cached data if less than 5 minutes old
@@ -27,26 +27,26 @@ func scanReposCmd(cfg *config.Config) tea.Cmd {
 		// Try to load from cache first
 		cacheStore := cache.NewFileStore()
 		cached, err := cacheStore.Load()
-		
+
 		if err == nil && cacheStore.IsValid(cacheMaxAge) && cacheStore.IsSameRoots(cfg.Roots) {
 			// Use cached data but trigger background refresh
 			return scanCompleteMsg{
-				repos:    cached.Repos,
+				repos:     cached.Repos,
 				fromCache: true,
 			}
 		}
-		
+
 		// Scan fresh
 		repos, err := scan.ScanRoots(cfg.Roots, cfg.Ignore)
 		if err != nil {
 			return scanErrorMsg{err: err}
 		}
-		
+
 		// Save to cache
 		_ = cacheStore.Save(repos, cfg.Roots)
-		
+
 		return scanCompleteMsg{
-			repos:    repos,
+			repos:     repos,
 			fromCache: false,
 		}
 	}

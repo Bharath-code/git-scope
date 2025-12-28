@@ -5,14 +5,14 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Bharath-code/git-scope/internal/config"
+	"github.com/Bharath-code/git-scope/internal/model"
+	"github.com/Bharath-code/git-scope/internal/stats"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Bharath-code/git-scope/internal/config"
-	"github.com/Bharath-code/git-scope/internal/model"
-	"github.com/Bharath-code/git-scope/internal/stats"
 )
 
 // State represents the current UI state
@@ -47,30 +47,30 @@ const (
 
 // Model is the Bubbletea model for the TUI
 type Model struct {
-	cfg         *config.Config
-	table       table.Model
-	textInput   textinput.Model
-	spinner     spinner.Model
-	repos       []model.Repo
-	filteredRepos []model.Repo  // After filter applied
-	sortedRepos []model.Repo   // After sort applied
-	state       State
-	err         error
-	statusMsg   string
-	width       int
-	height      int
-	sortMode    SortMode
-	filterMode  FilterMode
-	searchQuery string
+	cfg           *config.Config
+	table         table.Model
+	textInput     textinput.Model
+	spinner       spinner.Model
+	repos         []model.Repo
+	filteredRepos []model.Repo // After filter applied
+	sortedRepos   []model.Repo // After sort applied
+	state         State
+	err           error
+	statusMsg     string
+	width         int
+	height        int
+	sortMode      SortMode
+	filterMode    FilterMode
+	searchQuery   string
 	// Panel state
 	activePanel  PanelType
 	grassData    *stats.ContributionData
 	diskData     *stats.DiskUsageData
 	timelineData *stats.TimelineData
 	// Workspace switch state
-	workspaceInput   textinput.Model
-	workspaceError   string
-	activeWorkspace  string
+	workspaceInput  textinput.Model
+	workspaceError  string
+	activeWorkspace string
 	// Star nudge state
 	showStarNudge         bool
 	nudgeShownThisSession bool
@@ -108,16 +108,16 @@ func NewModel(cfg *config.Config) Model {
 		Foreground(lipgloss.Color("#FFFFFF")).
 		Background(lipgloss.Color("#7C3AED")).
 		Padding(0, 1)
-	
+
 	// Strong row highlighting
 	s.Selected = s.Selected.
 		Foreground(lipgloss.Color("#000000")).
 		Background(lipgloss.Color("#A78BFA")).
 		Bold(true)
-	
+
 	s.Cell = s.Cell.
 		Padding(0, 1)
-		
+
 	t.SetStyles(s)
 
 	// Create text input for search
@@ -161,12 +161,12 @@ func (m Model) GetSelectedRepo() *model.Repo {
 	if m.state != StateReady || len(m.sortedRepos) == 0 {
 		return nil
 	}
-	
+
 	// Get the cursor position within the current page
 	cursor := m.table.Cursor()
 	// Calculate the actual index in sortedRepos
 	actualIndex := m.currentPage*m.pageSize + cursor
-	
+
 	if actualIndex >= 0 && actualIndex < len(m.sortedRepos) {
 		return &m.sortedRepos[actualIndex]
 	}
@@ -176,7 +176,7 @@ func (m Model) GetSelectedRepo() *model.Repo {
 // applyFilter filters repos based on current filter mode and search query
 func (m *Model) applyFilter() {
 	m.filteredRepos = make([]model.Repo, 0, len(m.repos))
-	
+
 	for _, r := range m.repos {
 		// Apply filter mode
 		switch m.filterMode {
@@ -189,20 +189,20 @@ func (m *Model) applyFilter() {
 				continue
 			}
 		}
-		
+
 		// Apply search query
 		if m.searchQuery != "" {
 			query := strings.ToLower(m.searchQuery)
 			name := strings.ToLower(r.Name)
 			branch := strings.ToLower(r.Status.Branch)
-			
+
 			// Only search Name and Branch to avoid matching parent paths
-			if !strings.Contains(name, query) && 
-			   !strings.Contains(branch, query) {
+			if !strings.Contains(name, query) &&
+				!strings.Contains(branch, query) {
 				continue
 			}
 		}
-		
+
 		m.filteredRepos = append(m.filteredRepos, r)
 	}
 }
@@ -211,7 +211,7 @@ func (m *Model) applyFilter() {
 func (m *Model) sortRepos() {
 	m.sortedRepos = make([]model.Repo, len(m.filteredRepos))
 	copy(m.sortedRepos, m.filteredRepos)
-	
+
 	switch m.sortMode {
 	case SortByDirty:
 		sort.Slice(m.sortedRepos, func(i, j int) bool {
@@ -255,10 +255,10 @@ func (m Model) getCurrentPageRepos() []model.Repo {
 	if len(m.sortedRepos) == 0 {
 		return []model.Repo{}
 	}
-	
+
 	start := m.currentPage * m.pageSize
 	end := start + m.pageSize
-	
+
 	if start >= len(m.sortedRepos) {
 		start = 0
 		end = m.pageSize
@@ -266,7 +266,7 @@ func (m Model) getCurrentPageRepos() []model.Repo {
 	if end > len(m.sortedRepos) {
 		end = len(m.sortedRepos)
 	}
-	
+
 	return m.sortedRepos[start:end]
 }
 
@@ -365,7 +365,7 @@ func (m *Model) resizeTable() {
 	} else if m.searchQuery != "" {
 		usedHeight += 1 // Search badge
 	}
-	
+
 	h := m.height - usedHeight
 	if h < 1 {
 		h = 1
