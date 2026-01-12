@@ -95,10 +95,10 @@ func CompleteDirectoryPath(input string) string {
 
 	// Remember if input started with ~
 	hadTilde := strings.HasPrefix(input, "~")
-	
+
 	// Expand tilde for processing
 	path := expandTilde(input)
-	
+
 	// Handle relative paths
 	if !filepath.IsAbs(path) {
 		absPath, err := filepath.Abs(path)
@@ -111,7 +111,7 @@ func CompleteDirectoryPath(input string) string {
 	// Get the directory and prefix to match
 	dir := filepath.Dir(path)
 	prefix := filepath.Base(path)
-	
+
 	// If the path exists as-is and is a directory, just add trailing slash
 	info, err := os.Stat(path)
 	if err == nil && info.IsDir() {
@@ -149,7 +149,7 @@ func CompleteDirectoryPath(input string) string {
 	if len(matches) == 1 {
 		// Unique match - complete it
 		completedPath := filepath.Join(dir, matches[0])
-		
+
 		// Convert back to ~ format if it started with ~
 		if hadTilde {
 			home, _ := os.UserHomeDir()

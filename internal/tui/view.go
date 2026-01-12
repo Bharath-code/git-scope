@@ -42,7 +42,7 @@ func (m Model) renderLoading() string {
 
 	b.WriteString(subtitleStyle.Render("Searching for git repos in:"))
 	b.WriteString("\n")
-	
+
 	// Show workspace path if switching, otherwise show config roots
 	if m.activeWorkspace != "" {
 		b.WriteString(pathBulletStyle.Render("  → "))
@@ -128,7 +128,7 @@ func (m Model) renderDashboard() string {
 	if m.activePanel != PanelNone {
 		// Render table content
 		tableContent := m.table.View()
-		
+
 		// Render panel content based on active panel
 		var panelContent string
 		switch m.activePanel {
@@ -139,7 +139,7 @@ func (m Model) renderDashboard() string {
 		case PanelTimeline:
 			panelContent = renderTimelinePanel(m.timelineData, m.width/2, m.height-15)
 		}
-		
+
 		b.WriteString(renderSplitPane(tableContent, panelContent, m.width-4))
 	} else {
 		// Full-width table
@@ -188,18 +188,18 @@ func (m Model) renderSearchBadge() string {
 	if m.searchQuery == "" {
 		return ""
 	}
-	
+
 	// Show current search query as badge
 	searchBadge := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFFFF")).
 		Background(lipgloss.Color("#7C3AED")).
 		Padding(0, 1).
 		Render("🔍 " + m.searchQuery)
-	
+
 	clearHint := lipgloss.NewStyle().
 		Foreground(mutedColor).
 		Render(" (press c to clear)")
-	
+
 	return searchBadge + clearHint
 }
 
@@ -261,7 +261,7 @@ func (m Model) renderStats() string {
 			Background(lipgloss.Color("#10B981")).
 			Padding(0, 1).
 			Render(fmt.Sprintf("📄 %d/%d", m.currentPage+1, totalPages))
-		pageHint := hintStyle.Render(" ([])") 
+		pageHint := hintStyle.Render(" ([])")
 		stats = append(stats, pageBadge+pageHint)
 	}
 
@@ -365,7 +365,7 @@ func (m Model) renderWorkspaceModal() string {
 	if m.workspaceError != "" {
 		errorLine = "\n" + lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#EF4444")).
-			Render("❌ " + m.workspaceError)
+			Render("❌ "+m.workspaceError)
 	}
 
 	// Footer hints
@@ -388,13 +388,13 @@ func (m Model) renderStarNudge() string {
 	nudgeStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FCD34D")).
 		Italic(true)
-	
+
 	ctaStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#A78BFA")).
 		Bold(true)
-	
+
 	message := nudgeStyle.Render("✨ If git-scope helped you stay in flow, a GitHub star helps others discover it.")
 	cta := ctaStyle.Render(" (S) Open GitHub")
-	
+
 	return message + cta
 }

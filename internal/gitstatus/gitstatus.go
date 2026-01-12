@@ -14,77 +14,125 @@ import (
 func Status(repoPath string) (model.RepoStatus, error) {
 	status := model.RepoStatus{}
 
-	// Get branch and status info using porcelain v2 format
-	cmd := exec.Command("git", "status", "--porcelain=v2", "-b")
-	cmd.Dir = repoPath
-	out, err := cmd.Output()
+	out, err := runGit(repoPath, "status", "--porcelain=v2", "-b")
 	if err != nil {
 		return status, fmt.Errorf("git status: %w", err)
 	}
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
-		// Parse branch name
-		if strings.HasPrefix(line, "# branch.head ") {
-			status.Branch = strings.TrimPrefix(line, "# branch.head ")
+	for _, line := range strings.Split(string(out), "\n") {
+		if line == "" {
+			continue
 		}
 
-		// Parse ahead/behind
-		if strings.HasPrefix(line, "# branch.ab ") {
-			parts := strings.Fields(line)
-			if len(parts) >= 4 {
-				aheadStr := strings.TrimPrefix(parts[2], "+")
-				behindStr := strings.TrimPrefix(parts[3], "-")
-				status.Ahead, _ = strconv.Atoi(aheadStr)
-				status.Behind, _ = strconv.Atoi(behindStr)
-			}
+		// header lines -> branch metadata
+		if strings.HasPrefix(line, "#") {
+			applyBranchHeader(&status, line)
+			continue
 		}
 
-		// Count file statuses (non-header lines)
-		if len(line) > 0 && !strings.HasPrefix(line, "#") {
-			// Porcelain v2 format:
-			// 1 = Changed entries (staged or unstaged)
-			// 2 = Renamed/copied entries
-			// ? = Untracked files
-			// ! = Ignored files
-
-			if strings.HasPrefix(line, "1 ") || strings.HasPrefix(line, "2 ") {
-				// Parse the XY status
-				parts := strings.Fields(line)
-				if len(parts) >= 2 {
-					xy := parts[1]
-					if len(xy) >= 2 {
-						// X = staged status, Y = unstaged status
-						if xy[0] != '.' {
-							status.Staged++
-						}
-						if xy[1] != '.' {
-							status.Unstaged++
-						}
-					}
-				}
-			} else if strings.HasPrefix(line, "? ") {
-				status.Untracked++
-			}
-		}
+		// non-header lines -> file status records
+		applyFileLine(&status, line)
 	}
 
 	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0
 
-	// Get last commit time
-	t, err := lastCommitTime(repoPath)
-	if err == nil {
+	if t, err := lastCommitTime(repoPath); err == nil {
 		status.LastCommit = t
 	}
 
 	return status, nil
 }
 
+// runGit is a helper that executes a git command with the given arguments
+// in the specified directory and returns its stdout output
+func runGit(dir string, args ...string) ([]byte, error) {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	return cmd.Output()
+}
+
+// applyBranchHeader parses porcelain v2 branch metadata lines and updates
+// the repository status with branch name and ahead/behind information
+func applyBranchHeader(status *model.RepoStatus, line string) {
+	if strings.HasPrefix(line, "# branch.head ") {
+		status.Branch = strings.TrimPrefix(line, "# branch.head ")
+		return
+	}
+
+	if strings.HasPrefix(line, "# branch.ab ") {
+		ahead, behind, ok := parseAheadBehind(line)
+		if ok {
+			status.Ahead = ahead
+			status.Behind = behind
+		}
+		return
+	}
+}
+
+// parseAheadBehind extracts ahead/behind commit counts from a
+// `# branch.ab +N -M` porcelain v2 header lien.
+// It returns ok = false if the line cannot be parsed.
+func parseAheadBehind(line string) (ahead int, behind int, ok bool) {
+	parts := strings.Fields(line)
+	// Expected: ["#", "branch.ab", "+N", "-M"]
+	if len(parts) < 4 {
+		return 0, 0, false
+	}
+
+	aheadStr := strings.TrimPrefix(parts[2], "+")
+	behindStr := strings.TrimPrefix(parts[3], "-")
+
+	a, err1 := strconv.Atoi(aheadStr)
+	b, err2 := strconv.Atoi(behindStr)
+	if err1 != nil || err2 != nil {
+		return 0, 0, false
+	}
+
+	return a, b, true
+}
+
+func applyFileLine(status *model.RepoStatus, line string) {
+	// Porcelain v2 format:
+	// 1 = Changed entries (staged or unstaged)
+	// 2 = Renamed/copied entries
+	// ? = Untracked files
+	// ! = Ignored files
+
+	switch {
+	case strings.HasPrefix(line, "1 "), strings.HasPrefix(line, "2 "):
+		staged, unstaged := parseXY(line)
+		if staged {
+			status.Staged++
+		}
+		if unstaged {
+			status.Unstaged++
+		}
+
+	case strings.HasPrefix(line, "? "):
+		status.Untracked++
+	}
+}
+
+// parseXY extracts staged (X) and unstaged (Y) change indicators from a
+// porcelain v2 file status line and reports whether each side is dirty
+func parseXY(line string) (staged bool, unstaged bool) {
+	parts := strings.Fields(line)
+	if len(parts) < 2 {
+		return false, false
+	}
+
+	xy := parts[1]
+	if len(xy) < 2 {
+		return false, false
+	}
+
+	// X = staged status, Y = unstaged status. '.' means clean.
+	return xy[0] != '.', xy[1] != '.'
+}
+
 // lastCommitTime retrieves the timestamp of the most recent commit
 func lastCommitTime(repoPath string) (time.Time, error) {
-	cmd := exec.Command("git", "log", "-1", "--format=%ct")
-	cmd.Dir = repoPath
-	out, err := cmd.Output()
+	out, err := runGit(repoPath, "log", "-1", "--format=%ct")
 	if err != nil {
 		return time.Time{}, fmt.Errorf("git log: %w", err)
 	}

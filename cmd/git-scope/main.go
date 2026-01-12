@@ -17,6 +17,12 @@ import (
 
 const version = "1.0.1"
 
+type options struct {
+	ConfigPath  string
+	ShowVersion bool
+	ShowHelp    bool
+}
+
 func usage() {
 	fmt.Fprintf(os.Stderr, `git-scope v%s — A fast TUI to see the status of all git repositories
 
@@ -44,71 +50,99 @@ Flags:
 	flag.PrintDefaults()
 }
 
+func printVersion() {
+	fmt.Printf("git-scope v%s\n", version)
+}
+
 func main() {
 	flag.Usage = usage
-	configPath := flag.String("config", config.DefaultConfigPath(), "Path to config file")
-	showVersion := flag.Bool("v", false, "Show version")
-	flag.Bool("version", false, "Show version")
-	flag.Parse()
 
-	// Handle version flag
-	if *showVersion || isFlagPassed("version") {
-		fmt.Printf("git-scope v%s\n", version)
+	opts := parseFlags()
+	if opts.ShowVersion {
+		printVersion()
 		return
 	}
-
-	args := flag.Args()
-	cmd := ""
-	dirs := []string{}
-
-	// Parse command and directories
-	if len(args) >= 1 {
-		switch args[0] {
-		case "scan", "tui", "help", "init", "scan-all", "issue", "-h", "--help", "-v", "--version":
-			cmd = args[0]
-			dirs = args[1:]
-		default:
-			// Assume it's a directory
-			cmd = "tui"
-			dirs = args
-		}
-	}
-
-	// Handle help early
-	if cmd == "help" || cmd == "-h" || cmd == "--help" {
+	if opts.ShowHelp {
 		usage()
 		return
 	}
 
-	// Handle version
-	if cmd == "-v" || cmd == "--version" {
-		fmt.Printf("git-scope v%s\n", version)
+	cmd, dirs := parseCommand(flag.Args())
+	// Handle help subcommand (e.g. `git-scope help`)
+	if cmd == "help" {
+		usage()
 		return
 	}
 
-	// Handle init command
-	if cmd == "init" {
+	if err := run(cmd, dirs, opts.ConfigPath); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// parseFlags defines and parses all supported CLI flags and returns
+// the resolved options. It is responsible only for flag handling and
+// does not perform any command execution. So if a user runs
+// `git-scope -foo bar`, parseFlags only parses the `-foo` flag, if it
+// is supported by git-scope.
+func parseFlags() options {
+	configPath := flag.String("config", config.DefaultConfigPath(), "Path to config file")
+
+	var showVersion bool
+	flag.BoolVar(&showVersion, "v", false, "Show version")
+	flag.BoolVar(&showVersion, "version", false, "Show version")
+
+	var showHelp bool
+	flag.BoolVar(&showHelp, "h", false, "Help")
+	flag.BoolVar(&showHelp, "help", false, "Help")
+
+	flag.Parse()
+
+	return options{
+		ConfigPath:  *configPath,
+		ShowVersion: showVersion,
+		ShowHelp:    showHelp,
+	}
+}
+
+// parseCommand determines the command and directories from positional
+// arguments.
+func parseCommand(args []string) (cmd string, dirs []string) {
+	if len(args) == 0 {
+		return "", nil
+	}
+
+	switch args[0] {
+	case "scan", "tui", "help", "init", "scan-all", "issue":
+		return args[0], args[1:]
+	default:
+		return "tui", args // assume it's a directory
+	}
+}
+
+// run executes the requested command using the provided configuration path
+// and directories.
+func run(cmd string, dirs []string, configPath string) error {
+	switch cmd {
+	case "init":
 		runInit()
-		return
-	}
-
-	// Handle issue command
-	if cmd == "issue" {
+		return nil
+	case "issue":
 		runIssue()
-		return
+		return nil
+	case "scan-all":
+		runScanAll()
+		return nil
 	}
 
-	// Load configuration
-	cfg, err := config.Load(*configPath)
+	// Only commands below need config
+	cfg, err := config.Load(configPath)
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Override roots if directories provided via CLI
 	if len(dirs) > 0 {
 		cfg.Roots = expandDirs(dirs)
-	} else if !config.ConfigExists(*configPath) {
-		// No config file and no CLI dirs - use smart defaults
+	} else if !config.ConfigExists(configPath) {
 		cfg.Roots = getSmartDefaults()
 	}
 
@@ -116,37 +150,23 @@ func main() {
 	case "scan":
 		repos, err := scan.ScanRoots(cfg.Roots, cfg.Ignore)
 		if err != nil {
-			log.Fatalf("scan error: %v", err)
+			return fmt.Errorf("scan error: %w", err)
 		}
 		if err := scan.PrintJSON(os.Stdout, repos); err != nil {
-			log.Fatalf("print error: %v", err)
+			return fmt.Errorf("print error: %w", err)
 		}
-
-	case "scan-all":
-		runScanAll()
-		return
+		return nil
 
 	case "tui", "":
 		if err := tui.Run(cfg); err != nil {
-			log.Fatalf("tui error: %v", err)
+			return fmt.Errorf("tui error: %w", err)
 		}
+		return nil
 
 	default:
-		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", cmd)
 		usage()
-		os.Exit(1)
+		return fmt.Errorf("unknown command: %s", cmd)
 	}
-}
-
-// isFlagPassed checks if a flag was explicitly passed on the command line
-func isFlagPassed(name string) bool {
-	found := false
-	flag.Visit(func(f *flag.Flag) {
-		if f.Name == name {
-			found = true
-		}
-	})
-	return found
 }
 
 // expandDirs converts relative paths and ~ to absolute paths
@@ -217,10 +237,10 @@ func getSmartDefaults() []string {
 // runInit creates a config file interactively
 func runInit() {
 	configPath := config.DefaultConfigPath()
-	
+
 	fmt.Println("git-scope init — Setup your configuration")
 	fmt.Println()
-	
+
 	// Check if config already exists
 	if config.ConfigExists(configPath) {
 		fmt.Printf("Config file already exists at: %s\n", configPath)
@@ -235,7 +255,7 @@ func runInit() {
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	
+
 	// Get directories
 	fmt.Println("Enter directories to scan for git repos (one per line, empty line to finish):")
 	fmt.Println()
@@ -246,7 +266,7 @@ func runInit() {
 	fmt.Println()
 	fmt.Println("Examples: ~/code, ~/projects, ~/work")
 	fmt.Println()
-	
+
 	dirs := []string{}
 	for {
 		fmt.Print("> ")

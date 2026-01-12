@@ -25,7 +25,7 @@ func defaultConfig() *Config {
 		// Fallback to home directory if cwd fails
 		cwd, _ = os.UserHomeDir()
 	}
-	
+
 	return &Config{
 		Roots: []string{cwd},
 		Ignore: []string{
@@ -76,7 +76,7 @@ func expandPath(path string) string {
 		}
 		path = filepath.Join(home, path[2:])
 	}
-	
+
 	// Handle "." or relative paths - convert to absolute
 	if path == "." || !filepath.IsAbs(path) {
 		absPath, err := filepath.Abs(path)
@@ -85,7 +85,7 @@ func expandPath(path string) string {
 		}
 		path = absPath
 	}
-	
+
 	return path
 }
 
@@ -140,4 +140,3 @@ func CreateConfig(path string, roots []string, editor string) error {
 
 	return nil
 }
-
