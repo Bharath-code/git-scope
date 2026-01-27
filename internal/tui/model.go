@@ -153,7 +153,7 @@ func NewModel(cfg *config.Config) Model {
 
 // Init initializes the model
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, scanReposCmd(m.cfg))
+	return tea.Batch(m.spinner.Tick, scanReposCmd(m.cfg, false))
 }
 
 // GetSelectedRepo returns the currently selected repo

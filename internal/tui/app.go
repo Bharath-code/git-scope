@@ -22,17 +22,19 @@ func Run(cfg *config.Config) error {
 }
 
 // scanReposCmd is a command that scans for repositories
-func scanReposCmd(cfg *config.Config) tea.Cmd {
+// If forceRefresh is true, bypass cache and scan fresh
+func scanReposCmd(cfg *config.Config, forceRefresh bool) tea.Cmd {
 	return func() tea.Msg {
-		// Try to load from cache first
 		cacheStore := cache.NewFileStore()
-		cached, err := cacheStore.Load()
 
-		if err == nil && cacheStore.IsValid(cacheMaxAge) && cacheStore.IsSameRoots(cfg.Roots) {
-			// Use cached data but trigger background refresh
-			return scanCompleteMsg{
-				repos:     cached.Repos,
-				fromCache: true,
+		// Try to load from cache first (unless forcing refresh)
+		if !forceRefresh {
+			cached, err := cacheStore.Load()
+			if err == nil && cacheStore.IsValid(cacheMaxAge) && cacheStore.IsSameRoots(cfg.Roots) {
+				return scanCompleteMsg{
+					repos:     cached.Repos,
+					fromCache: true,
+				}
 			}
 		}
 

@@ -110,7 +110,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.statusMsg = ""
 		}
-		return m, scanReposCmd(m.cfg)
+		return m, scanReposCmd(m.cfg, true)
 
 	case grassDataLoadedMsg:
 		m.grassData = msg.data
@@ -182,7 +182,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "r":
 			m.state = StateLoading
 			m.statusMsg = "Rescanning..."
-			return m, scanReposCmd(m.cfg)
+			return m, scanReposCmd(m.cfg, true)
 
 		case "f":
 			// Cycle through filter modes
