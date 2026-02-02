@@ -147,7 +147,7 @@ func NewModel(cfg *config.Config) Model {
 		sortMode:       SortByDirty,
 		filterMode:     FilterAll,
 		currentPage:    0,
-		pageSize:       15,
+		pageSize:       cfg.PageSize,
 	}
 }
 

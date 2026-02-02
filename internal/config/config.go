@@ -11,9 +11,10 @@ import (
 
 // Config holds the application configuration
 type Config struct {
-	Roots  []string `yaml:"roots"`
-	Ignore []string `yaml:"ignore"`
-	Editor string   `yaml:"editor"`
+	Roots    []string `yaml:"roots"`
+	Ignore   []string `yaml:"ignore"`
+	Editor   string   `yaml:"editor"`
+	PageSize int      `yaml:"pageSize,omitempty"`
 }
 
 // defaultConfig returns sensible defaults
@@ -37,7 +38,8 @@ func defaultConfig() *Config {
 			".venv",
 			"vendor",
 		},
-		Editor: "code",
+		Editor:   "code",
+		PageSize: 15,
 	}
 }
 
@@ -61,6 +63,11 @@ func Load(path string) (*Config, error) {
 	// Expand ~ in paths
 	for i, root := range cfg.Roots {
 		cfg.Roots[i] = expandPath(root)
+	}
+
+	// Ensure pageSize has a sensible value
+	if cfg.PageSize <= 0 {
+		cfg.PageSize = 15
 	}
 
 	return cfg, nil
