@@ -20,8 +20,10 @@
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "Git-Scope",
+      "name": "git-scope",
+      "softwareVersion": "1.3.x",
       "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Git Terminal Interface / Dashboard",
       "operatingSystem": "macOS, Linux, Windows",
       "offers": {
         "@type": "Offer",
@@ -29,6 +31,16 @@
         "priceCurrency": "USD"
       },
       "description": "A blazing fast TUI to manage, search, and clean up all your local git repositories. Zero config required.",
+      "screenshot": "https://bharath-code.github.io/git-scope/git-scope-demo-1.webp",
+      "featureList": [
+        "Workspace Switcher (~, relative paths, symlinks)",
+        "Fuzzy Search (name, path, branch)",
+        "Dirty Filter (find unstaged/uncommitted changes)",
+        "Blazing Fast (JSON caching, <10ms startup)",
+        "Disk Usage Visualizer (git vs node_modules)",
+        "Local Heatmap (contribution graph)",
+        "Timeline View (recent activity across all projects)"
+      ],
       "author": {
         "@type": "Person",
         "name": "Bharath Kumar",
@@ -40,17 +52,17 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://bharath-code.github.io/git-scope/">
-    <meta property="og:title" content="Git-Scope | Control Your Git Universe">
+    <meta property="og:title" content="git-scope | Multi-Repo Terminal Dashboard">
     <meta property="og:description"
-        content="A blazing fast TUI to manage, search, and clean up all your local git repositories. Zero config required.">
+        content="Visualize your entire Git workspace in one screen. A fast, read-only TUI for managing microservices, OSS forks, and complex projects.">
     <meta property="og:image" content="https://bharath-code.github.io/git-scope/og-image.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://bharath-code.github.io/git-scope/">
-    <meta property="twitter:title" content="Git-Scope | Control Your Git Universe">
+    <meta property="twitter:title" content="git-scope | Multi-Repo Terminal Dashboard">
     <meta property="twitter:description"
-        content="A blazing fast TUI to manage, search, and clean up all your local git repositories. Zero config required.">
+        content="Visualize your entire Git workspace in one screen. A fast, read-only TUI for managing microservices and complex projects.">
     <meta property="twitter:image" content="https://bharath-code.github.io/git-scope/og-image.png">
 
     <!-- Fonts -->
@@ -1570,7 +1582,7 @@
                             <picture>
                                 <source media="(max-width: 768px)" srcset="git-scope-demo-mobile-1.webp"
                                     type="image/webp">
-                                <img src="git-scope-demo-1.webp" alt="Git Scope Demo" loading="eager" width="1200"
+                                <img src="git-scope-demo-1.webp" alt="git-scope Demo" loading="eager" width="1200"
                                     height="800" style="width: 100%; height: auto; display: block;" decoding="async">
                             </picture>
                         </div>

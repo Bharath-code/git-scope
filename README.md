@@ -8,7 +8,22 @@
 [![GitHub stars](https://img.shields.io/github/stars/Bharath-code/git-scope)](https://github.com/Bharath-code/git-scope/stargazers)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/iam_pbk)
 
+🌐 **Website:** [bharath-code.github.io/git-scope](https://bharath-code.github.io/git-scope/)
+
 ![git-scope Demo](docs/git-scope-demo-1.webp)
+
+---
+
+## 🛡️ Trust & Safety
+
+git-scope is designed to be safe to run frequently and safe to recommend.
+
+- **Read-only by design** — it does not modify repositories
+- **Local-first** — no network access, no telemetry, no accounts
+- **Predictable** — no background services or daemons
+- **Conservative scope** — focused on visibility, not automation
+
+These choices make git-scope suitable for daily use and work environments where reliability and transparency matter.
 
 ---
 
@@ -94,6 +109,25 @@ git-scope -h           # Show help
 
 -----
 
+## 🎯 Use Cases
+
+git-scope excels in environments where multi-repo complexity is a daily burden:
+
+*   **Microservices Management** — Quickly verify if all your services are on the correct branch and have no unpushed changes.
+*   **OSS Contribution Tracking** — Keep tabs on various upstream forks and personal branches in one view.
+*   **Infrastructure as Code (IaC)** — Monitor multiple Terraform/CloudFormation repos for configuration drift or uncommitted edits.
+*   **Context Recovery** — Instantly see where you left off after a weekend or a holiday without running `git status` 20 times.
+
+-----
+
+## 🏆 The git-scope Advantage
+
+While many Git tools focus on the *micro* (committing, staging, diffing), git-scope is built for the *macro*.
+
+Typical git workflows involve "tunnel vision"—working deep inside one repository. git-scope provides the "command center" view. It is intentionally **read-only**, **local-first**, and **blazing fast** (<10ms), making it the perfect companion to tools like `lazygit`, `gitui`, or VS Code.
+
+-----
+
 ## ⌨️ Keyboard Shortcuts
 
 | Key | Action |
@@ -156,10 +190,42 @@ I built `git-scope` to solve the **"Multi-Repo Blindness"** problem. It gives me
 
   - [x] In-app workspace switching with Tab completion
   - [x] Symlink resolution for devcontainers/Codespaces
-  - [ ] Background file watcher (real-time updates)
+  - [x] Background file watcher (real-time updates)
   - [ ] Quick actions (bulk pull/fetch)
   - [ ] Repo grouping (Service / Team / Stack)
   - [ ] Custom team dashboards
+
+## ❓ FAQ
+
+### How do you manage multiple Git repositories locally?
+
+git-scope provides a fast, read-only terminal dashboard that shows the status of many local Git repositories at once. It helps developers regain context across projects without switching directories or running commands repeatedly.
+
+### What problem does git-scope solve?
+
+git-scope reduces context switching when working across many Git repositories, such as microservices, tools, or configuration repos. It gives a single overview of repository state so developers can quickly see what needs attention.
+
+### Is git-scope safe to use at work?
+
+Yes. git-scope is read-only by design, runs entirely locally, has no network access or telemetry, and does not modify repositories. This makes it safe for daily and work use.
+
+### Does git-scope replace git commands?
+
+No. git-scope does not perform git actions like commit, push, or pull. It focuses on visibility and orientation, not automation.
+
+### Is git-scope suitable for monorepos?
+
+git-scope is designed for multi-repo (polyrepo) workflows. It is not intended to manage monorepos.
+
+### What platforms does git-scope support?
+
+git-scope runs on macOS, Linux, and Windows.
+
+### How is git-scope different from other git TUIs?
+
+Most git TUIs focus on interacting with a single repository. git-scope focuses on visibility across many repositories and stays intentionally read-only.
+
+---
 
 ## 📄 License
 
