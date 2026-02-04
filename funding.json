@@ -1,0 +1,125 @@
+{
+    "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+    "version": "v1.1.0",
+    "entity": {
+        "type": "individual",
+        "role": "maintainer",
+        "name": "Bharath",
+        "email": "kumarbharath63@gmail.com",
+        "phone": "",
+        "description": "Full-stack engineer building developer tools that solve real problems. Creator of git-scope and other open-source utilities focused on developer productivity and multi-repo workflows.",
+        "webpageUrl": {
+            "url": "https://github.com/Bharath-code",
+            "wellKnown": ""
+        }
+    },
+    "projects": [
+        {
+            "guid": "git-scope",
+            "name": "git-scope",
+            "description": "A fast TUI dashboard to view the git status of all your repositories in one place. Stop the cd → git status loop. git-scope solves the \"Multi-Repo Blindness\" problem by providing a command center view across dozens of repositories.\n\nFeatures include fuzzy search, dirty filtering, workspace switching, contribution graphs, disk usage visualization, and editor integration. Designed to be read-only, local-first, and blazing fast (<10ms startup).",
+            "webpageUrl": {
+                "url": "https://bharath-code.github.io/git-scope/",
+                "wellKnown": ""
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/Bharath-code/git-scope",
+                "wellKnown": ""
+            },
+            "licenses": [
+                "spdx:MIT"
+            ],
+            "tags": [
+                "git",
+                "tui",
+                "terminal",
+                "developer-tools",
+                "productivity",
+                "go",
+                "cli",
+                "multi-repo"
+            ]
+        }
+    ],
+    "funding": {
+        "channels": [
+            {
+                "guid": "github-sponsors",
+                "type": "payment-provider",
+                "address": "https://github.com/sponsors/Bharath-code",
+                "description": "Sponsor via GitHub Sponsors — supports recurring and one-time contributions."
+            },
+            {
+                "guid": "buymeacoffee",
+                "type": "payment-provider",
+                "address": "https://buymeacoffee.com/iam_pbk",
+                "description": "Quick one-time contributions via Buy Me A Coffee."
+            }
+        ],
+        "plans": [
+            {
+                "guid": "backer",
+                "status": "active",
+                "name": "Backer",
+                "description": "Support ongoing development and maintenance of git-scope.",
+                "amount": 25,
+                "currency": "USD",
+                "frequency": "monthly",
+                "channels": [
+                    "github-sponsors",
+                    "buymeacoffee"
+                ]
+            },
+            {
+                "guid": "supporter",
+                "status": "active",
+                "name": "Supporter",
+                "description": "Fund new feature development and priority bug fixes.",
+                "amount": 100,
+                "currency": "USD",
+                "frequency": "monthly",
+                "channels": [
+                    "github-sponsors"
+                ]
+            },
+            {
+                "guid": "sponsor",
+                "status": "active",
+                "name": "Sponsor",
+                "description": "Significant contribution to fund major features and infrastructure. Get recognition in README.",
+                "amount": 250,
+                "currency": "USD",
+                "frequency": "monthly",
+                "channels": [
+                    "github-sponsors"
+                ]
+            },
+            {
+                "guid": "platinum",
+                "status": "active",
+                "name": "Platinum Sponsor",
+                "description": "Premium sponsorship with logo placement and priority feature requests.",
+                "amount": 500,
+                "currency": "USD",
+                "frequency": "monthly",
+                "channels": [
+                    "github-sponsors"
+                ]
+            },
+            {
+                "guid": "one-time",
+                "status": "active",
+                "name": "One-Time Contribution",
+                "description": "Any amount to show your support for the project.",
+                "amount": 0,
+                "currency": "USD",
+                "frequency": "one-time",
+                "channels": [
+                    "github-sponsors",
+                    "buymeacoffee"
+                ]
+            }
+        ],
+        "history": []
+    }
+}
