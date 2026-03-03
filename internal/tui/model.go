@@ -371,4 +371,11 @@ func (m *Model) resizeTable() {
 		h = 1
 	}
 	m.table.SetHeight(h)
+
+	// Ensure page size is at least 5 to avoid too small pages
+	if h < 5 {
+		h = 5
+	}
+	m.pageSize = h  // Update page size based on new height
+	m.updateTable() // Refresh table to apply new page size
 }
