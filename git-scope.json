@@ -1,0 +1,30 @@
+{
+    "version": "1.4.0",
+    "description": "A fast TUI dashboard to view the git status of all your repositories in one place.",
+    "homepage": "https://github.com/Bharath-code/git-scope",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/Bharath-code/git-scope/releases/download/v1.4.0/git-scope_1.4.0_windows_amd64.zip",
+            "hash": ""
+        },
+        "arm64": {
+            "url": "https://github.com/Bharath-code/git-scope/releases/download/v1.4.0/git-scope_1.4.0_windows_arm64.zip",
+            "hash": ""
+        }
+    },
+    "bin": "git-scope.exe",
+    "checkver": {
+        "github": "https://github.com/Bharath-code/git-scope"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/Bharath-code/git-scope/releases/download/v$version/git-scope_$version_windows_amd64.zip"
+            },
+            "arm64": {
+                "url": "https://github.com/Bharath-code/git-scope/releases/download/v$version/git-scope_$version_windows_arm64.zip"
+            }
+        }
+    }
+}

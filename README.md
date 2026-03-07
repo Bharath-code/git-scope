@@ -45,6 +45,12 @@ brew upgrade git-scope
 curl -sSL https://raw.githubusercontent.com/Bharath-code/git-scope/main/scripts/install.sh | sh
 ```
 
+### Scoop (Windows)
+```powershell
+scoop bucket add git-scope https://github.com/Bharath-code/git-scope
+scoop install git-scope
+```
+
 ### From Source (Windows)
 
 ```bash
