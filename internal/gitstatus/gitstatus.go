@@ -34,7 +34,7 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		applyFileLine(&status, line)
 	}
 
-	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0
+	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0 || status.Ahead > 0 || status.Behind > 0
 
 	if t, err := lastCommitTime(repoPath); err == nil {
 		status.LastCommit = t

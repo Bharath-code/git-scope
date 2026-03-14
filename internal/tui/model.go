@@ -88,6 +88,8 @@ func NewModel(cfg *config.Config) Model {
 		{Title: "Staged", Width: 6},
 		{Title: "Modified", Width: 8},
 		{Title: "Untracked", Width: 9},
+		{Title: "Ahead", Width: 7},
+		{Title: "Behind", Width: 7},
 		{Title: "Last Commit", Width: 14},
 	}
 
@@ -335,6 +337,8 @@ func reposToRows(repos []model.Repo) []table.Row {
 			formatNumber(r.Status.Staged),
 			formatNumber(r.Status.Unstaged),
 			formatNumber(r.Status.Untracked),
+			formatNumber(r.Status.Ahead),
+			formatNumber(r.Status.Behind),
 			lastCommit,
 		})
 	}
