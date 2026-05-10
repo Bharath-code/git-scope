@@ -11,10 +11,11 @@ import (
 
 // Config holds the application configuration
 type Config struct {
-	Roots    []string `yaml:"roots"`
-	Ignore   []string `yaml:"ignore"`
-	Editor   string   `yaml:"editor"`
-	PageSize int      `yaml:"pageSize,omitempty"`
+	Roots            []string `yaml:"roots"`
+	Ignore           []string `yaml:"ignore"`
+	Editor           string   `yaml:"editor"`
+	PageSize         int      `yaml:"pageSize,omitempty"`
+	IncludeWorktrees bool     `yaml:"includeWorktrees,omitempty"`
 }
 
 // defaultConfig returns sensible defaults

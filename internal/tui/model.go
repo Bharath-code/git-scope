@@ -77,6 +77,9 @@ type Model struct {
 	// Pagination state
 	currentPage int
 	pageSize    int
+	// Live toggle for including linked worktrees in scan results.
+	// Initialised from cfg.IncludeWorktrees; can be flipped at runtime via 'W'.
+	includeWorktrees bool
 }
 
 // NewModel creates a new TUI model
@@ -140,22 +143,23 @@ func NewModel(cfg *config.Config) Model {
 	sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#7C3AED"))
 
 	return Model{
-		cfg:            cfg,
-		table:          t,
-		textInput:      ti,
-		workspaceInput: wi,
-		spinner:        sp,
-		state:          StateLoading,
-		sortMode:       SortByDirty,
-		filterMode:     FilterAll,
-		currentPage:    0,
-		pageSize:       cfg.PageSize,
+		cfg:              cfg,
+		table:            t,
+		textInput:        ti,
+		workspaceInput:   wi,
+		spinner:          sp,
+		state:            StateLoading,
+		sortMode:         SortByDirty,
+		filterMode:       FilterAll,
+		currentPage:      0,
+		pageSize:         cfg.PageSize,
+		includeWorktrees: cfg.IncludeWorktrees,
 	}
 }
 
 // Init initializes the model
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, scanReposCmd(m.cfg, false))
+	return tea.Batch(m.spinner.Tick, scanReposCmd(m.cfg, false, m.includeWorktrees))
 }
 
 // GetSelectedRepo returns the currently selected repo
@@ -330,9 +334,14 @@ func reposToRows(repos []model.Repo) []table.Row {
 			status = "● Dirty"
 		}
 
+		name := r.Name
+		if r.IsWorktree {
+			name = "⎇ " + name
+		}
+
 		rows = append(rows, table.Row{
 			status,
-			truncateString(r.Name, 18),
+			truncateString(name, 18),
 			truncateString(r.Status.Branch, 14),
 			formatNumber(r.Status.Staged),
 			formatNumber(r.Status.Unstaged),

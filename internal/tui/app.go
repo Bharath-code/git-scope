@@ -21,16 +21,20 @@ func Run(cfg *config.Config) error {
 	return err
 }
 
-// scanReposCmd is a command that scans for repositories
-// If forceRefresh is true, bypass cache and scan fresh
-func scanReposCmd(cfg *config.Config, forceRefresh bool) tea.Cmd {
+// scanReposCmd is a command that scans for repositories.
+// If forceRefresh is true, bypass cache and scan fresh.
+// includeWorktrees is the live toggle state (overrides cfg for this scan).
+func scanReposCmd(cfg *config.Config, forceRefresh, includeWorktrees bool) tea.Cmd {
 	return func() tea.Msg {
 		cacheStore := cache.NewFileStore()
 
 		// Try to load from cache first (unless forcing refresh)
 		if !forceRefresh {
 			cached, err := cacheStore.Load()
-			if err == nil && cacheStore.IsValid(cacheMaxAge) && cacheStore.IsSameRoots(cfg.Roots) {
+			if err == nil &&
+				cacheStore.IsValid(cacheMaxAge) &&
+				cacheStore.IsSameRoots(cfg.Roots) &&
+				cacheStore.IsSameIncludeWorktrees(includeWorktrees) {
 				return scanCompleteMsg{
 					repos:     cached.Repos,
 					fromCache: true,
@@ -39,13 +43,13 @@ func scanReposCmd(cfg *config.Config, forceRefresh bool) tea.Cmd {
 		}
 
 		// Scan fresh
-		repos, err := scan.ScanRoots(cfg.Roots, cfg.Ignore)
+		repos, err := scan.ScanRootsWithOptions(cfg.Roots, cfg.Ignore, includeWorktrees)
 		if err != nil {
 			return scanErrorMsg{err: err}
 		}
 
 		// Save to cache
-		_ = cacheStore.Save(repos, cfg.Roots)
+		_ = cacheStore.Save(repos, cfg.Roots, includeWorktrees)
 
 		return scanCompleteMsg{
 			repos:     repos,

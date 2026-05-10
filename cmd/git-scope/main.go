@@ -18,9 +18,11 @@ import (
 const version = "1.0.1"
 
 type options struct {
-	ConfigPath  string
-	ShowVersion bool
-	ShowHelp    bool
+	ConfigPath       string
+	ShowVersion      bool
+	ShowHelp         bool
+	IncludeWorktrees bool
+	WorktreesSet     bool
 }
 
 func usage() {
@@ -74,7 +76,7 @@ func main() {
 		return
 	}
 
-	if err := run(cmd, dirs, opts.ConfigPath); err != nil {
+	if err := run(cmd, dirs, opts); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -95,12 +97,24 @@ func parseFlags() options {
 	flag.BoolVar(&showHelp, "h", false, "Help")
 	flag.BoolVar(&showHelp, "help", false, "Help")
 
+	var includeWorktrees bool
+	flag.BoolVar(&includeWorktrees, "worktrees", false, "Include linked git worktrees in scan results")
+
 	flag.Parse()
 
+	worktreesSet := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "worktrees" {
+			worktreesSet = true
+		}
+	})
+
 	return options{
-		ConfigPath:  *configPath,
-		ShowVersion: showVersion,
-		ShowHelp:    showHelp,
+		ConfigPath:       *configPath,
+		ShowVersion:      showVersion,
+		ShowHelp:         showHelp,
+		IncludeWorktrees: includeWorktrees,
+		WorktreesSet:     worktreesSet,
 	}
 }
 
@@ -121,7 +135,7 @@ func parseCommand(args []string) (cmd string, dirs []string) {
 
 // run executes the requested command using the provided configuration path
 // and directories.
-func run(cmd string, dirs []string, configPath string) error {
+func run(cmd string, dirs []string, opts options) error {
 	switch cmd {
 	case "init":
 		runInit()
@@ -135,20 +149,25 @@ func run(cmd string, dirs []string, configPath string) error {
 	}
 
 	// Only commands below need config
-	cfg, err := config.Load(configPath)
+	cfg, err := config.Load(opts.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	if len(dirs) > 0 {
 		cfg.Roots = expandDirs(dirs)
-	} else if !config.ConfigExists(configPath) {
+	} else if !config.ConfigExists(opts.ConfigPath) {
 		cfg.Roots = getSmartDefaults()
+	}
+
+	// CLI flag overrides the config value when explicitly set
+	if opts.WorktreesSet {
+		cfg.IncludeWorktrees = opts.IncludeWorktrees
 	}
 
 	switch cmd {
 	case "scan":
-		repos, err := scan.ScanRoots(cfg.Roots, cfg.Ignore)
+		repos, err := scan.ScanRootsWithOptions(cfg.Roots, cfg.Ignore, cfg.IncludeWorktrees)
 		if err != nil {
 			return fmt.Errorf("scan error: %w", err)
 		}

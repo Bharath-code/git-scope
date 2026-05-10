@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,9 +32,16 @@ var smartIgnorePatterns = []string{
 	"Google Drive", "OneDrive", "Dropbox", "iCloud",
 }
 
-// ScanRoots recursively scans the given root directories for git repositories
-// It skips directories matching the ignore patterns
+// ScanRoots recursively scans the given root directories for git repositories.
+// Skips directories matching the ignore patterns. Worktrees are excluded.
 func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
+	return ScanRootsWithOptions(roots, ignore, false)
+}
+
+// ScanRootsWithOptions is like ScanRoots but also accepts toggles. When
+// includeWorktrees is true, linked worktrees (.git is a regular file
+// containing a "gitdir:" pointer) are returned alongside regular repos.
+func ScanRootsWithOptions(roots, ignore []string, includeWorktrees bool) ([]model.Repo, error) {
 	// Build ignore set from user config + smart defaults
 	ignoreSet := make(map[string]struct{}, len(ignore)+len(smartIgnorePatterns))
 
@@ -74,35 +82,24 @@ func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 					return filepath.SkipDir
 				}
 
-				// Found a .git directory
+				// Found a .git directory — regular repository
 				if d.IsDir() && d.Name() == ".git" {
-					repoPath := filepath.Dir(path)
-
-					// Resolve to absolute path to get proper repo name
-					// This handles cases where path is "." or relative
-					absPath, err := filepath.Abs(repoPath)
-					if err == nil {
-						repoPath = absPath
-					}
-					repoName := filepath.Base(repoPath)
-
-					status, serr := gitstatus.Status(repoPath)
-
-					repo := model.Repo{
-						Name:   repoName,
-						Path:   repoPath,
-						Status: status,
-					}
-					if serr != nil {
-						repo.Status.ScanError = serr.Error()
-					}
-
+					repo := buildRepo(path, false)
 					mu.Lock()
 					repos = append(repos, repo)
 					mu.Unlock()
-
-					// Don't walk into .git directory
 					return filepath.SkipDir
+				}
+
+				// Found a .git file — linked worktree (opt-in)
+				if includeWorktrees && !d.IsDir() && d.Name() == ".git" {
+					if isWorktreeGitfile(path) {
+						repo := buildRepo(path, true)
+						mu.Lock()
+						repos = append(repos, repo)
+						mu.Unlock()
+					}
+					return nil
 				}
 
 				return nil
@@ -116,6 +113,48 @@ func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 
 	wg.Wait()
 	return repos, nil
+}
+
+// buildRepo constructs a Repo from a .git path (directory for regular repos,
+// file for worktrees). The repo's path is the parent of the .git entry.
+func buildRepo(gitPath string, isWorktree bool) model.Repo {
+	repoPath := filepath.Dir(gitPath)
+	if abs, err := filepath.Abs(repoPath); err == nil {
+		repoPath = abs
+	}
+	status, serr := gitstatus.Status(repoPath)
+	repo := model.Repo{
+		Name:       filepath.Base(repoPath),
+		Path:       repoPath,
+		Status:     status,
+		IsWorktree: isWorktree,
+	}
+	if serr != nil {
+		repo.Status.ScanError = serr.Error()
+	}
+	return repo
+}
+
+// isWorktreeGitfile checks whether a .git file is a linked-worktree pointer.
+// Worktrees: `.git` is a file whose first line is `gitdir: <main-repo>/.git/worktrees/<name>`.
+// Submodules use the same gitdir-pointer format but point at `.git/modules/<name>`,
+// so we filter on the path segment to exclude them.
+func isWorktreeGitfile(path string) bool {
+	f, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	if !scanner.Scan() {
+		return false
+	}
+	line := scanner.Text()
+	if !strings.HasPrefix(line, "gitdir:") {
+		return false
+	}
+	gitdir := strings.TrimSpace(strings.TrimPrefix(line, "gitdir:"))
+	return strings.Contains(gitdir, "/worktrees/") || strings.Contains(gitdir, `\worktrees\`)
 }
 
 // shouldIgnore checks if a directory name matches any ignore pattern

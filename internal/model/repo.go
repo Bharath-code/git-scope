@@ -17,7 +17,8 @@ type RepoStatus struct {
 
 // Repo represents a git repository with its metadata and status
 type Repo struct {
-	Name   string     `json:"name"`
-	Path   string     `json:"path"`
-	Status RepoStatus `json:"status"`
+	Name       string     `json:"name"`
+	Path       string     `json:"path"`
+	Status     RepoStatus `json:"status"`
+	IsWorktree bool       `json:"is_worktree,omitempty"`
 }

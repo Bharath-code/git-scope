@@ -11,15 +11,16 @@ import (
 
 // CacheData represents the cached scan results
 type CacheData struct {
-	Repos     []model.Repo `json:"repos"`
-	Timestamp time.Time    `json:"timestamp"`
-	Roots     []string     `json:"roots"`
+	Repos            []model.Repo `json:"repos"`
+	Timestamp        time.Time    `json:"timestamp"`
+	Roots            []string     `json:"roots"`
+	IncludeWorktrees bool         `json:"include_worktrees,omitempty"`
 }
 
 // Store interface for caching repo data
 type Store interface {
 	Load() (*CacheData, error)
-	Save(repos []model.Repo, roots []string) error
+	Save(repos []model.Repo, roots []string, includeWorktrees bool) error
 	IsValid(maxAge time.Duration) bool
 }
 
@@ -62,11 +63,12 @@ func (s *FileStore) Load() (*CacheData, error) {
 }
 
 // Save writes repos to cache file
-func (s *FileStore) Save(repos []model.Repo, roots []string) error {
+func (s *FileStore) Save(repos []model.Repo, roots []string, includeWorktrees bool) error {
 	cache := CacheData{
-		Repos:     repos,
-		Timestamp: time.Now(),
-		Roots:     roots,
+		Repos:            repos,
+		Timestamp:        time.Now(),
+		Roots:            roots,
+		IncludeWorktrees: includeWorktrees,
 	}
 
 	// Ensure cache directory exists
@@ -102,6 +104,15 @@ func (s *FileStore) IsSameRoots(roots []string) bool {
 		}
 	}
 	return true
+}
+
+// IsSameIncludeWorktrees checks whether the cache was produced with the same
+// worktree-inclusion setting. Toggling forces a rescan.
+func (s *FileStore) IsSameIncludeWorktrees(includeWorktrees bool) bool {
+	if s.data == nil {
+		return false
+	}
+	return s.data.IncludeWorktrees == includeWorktrees
 }
 
 // GetTimestamp returns the cache timestamp

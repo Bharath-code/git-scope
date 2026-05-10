@@ -208,21 +208,29 @@ func (m Model) renderStats() string {
 	shown := len(m.sortedRepos)
 	dirty := 0
 	clean := 0
+	worktrees := 0
 	for _, r := range m.repos {
 		if r.Status.IsDirty {
 			dirty++
 		} else {
 			clean++
 		}
+		if r.IsWorktree {
+			worktrees++
+		}
 	}
 
 	stats := []string{}
 
 	// Show count with filter info
+	repoLabel := "repos"
+	if m.includeWorktrees && worktrees > 0 {
+		repoLabel = fmt.Sprintf("repos (%d wt)", worktrees)
+	}
 	if shown == total {
-		stats = append(stats, statsBadgeStyle.Render(fmt.Sprintf("📁 %d repos", total)))
+		stats = append(stats, statsBadgeStyle.Render(fmt.Sprintf("📁 %d %s", total, repoLabel)))
 	} else {
-		stats = append(stats, statsBadgeStyle.Render(fmt.Sprintf("📁 %d/%d repos", shown, total)))
+		stats = append(stats, statsBadgeStyle.Render(fmt.Sprintf("📁 %d/%d %s", shown, total, repoLabel)))
 	}
 
 	if dirty > 0 {
@@ -309,12 +317,17 @@ func (m Model) renderHelp() string {
 		}
 	} else {
 		// Normal mode help - Tuimorphic style
+		wtLabel := "worktrees off"
+		if m.includeWorktrees {
+			wtLabel = "worktrees on"
+		}
 		items = []string{
 			keyBinding("↑↓", "nav"),
 			keyBinding("[]", "page"),
 			keyBinding("enter", "open"),
 			keyBinding("/", "search"),
 			keyBinding("w", "workspace"),
+			keyBinding("W", wtLabel),
 			keyBinding("f", "filter"),
 			keyBinding("s", "sort"),
 			keyBinding("g", "grass"),

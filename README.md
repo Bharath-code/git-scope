@@ -150,6 +150,7 @@ Typical git workflows involve "tunnel vision"—working deep inside one reposito
 | `g` | Toggle **Contribution Graph** |
 | `d` | Toggle **Disk Usage** view |
 | `t` | Toggle **Timeline** view |
+| `W` | Toggle **Worktree inclusion** (rescan; affects totals too) |
 | `q` | Quit |
 
 -----
@@ -172,6 +173,11 @@ ignore:
   - dist
 
 editor: code # options: code,nvim,lazygit,vim,cursor
+
+# Linked git worktrees are skipped by default. Set this to true (or pass
+# --worktrees on the CLI, or press W in the TUI) to include them in the
+# dashboard and stats.
+includeWorktrees: false
 ```
 
 -----

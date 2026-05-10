@@ -110,7 +110,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.statusMsg = ""
 		}
-		return m, scanReposCmd(m.cfg, true)
+		return m, scanReposCmd(m.cfg, true, m.includeWorktrees)
 
 	case grassDataLoadedMsg:
 		m.grassData = msg.data
@@ -182,7 +182,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "r":
 			m.state = StateLoading
 			m.statusMsg = "Rescanning..."
-			return m, scanReposCmd(m.cfg, true)
+			return m, scanReposCmd(m.cfg, true, m.includeWorktrees)
+
+		case "W":
+			// Toggle linked-worktree inclusion and rescan.
+			// Single command — flips visibility AND total/dirty/clean counts.
+			if m.state == StateReady {
+				m.includeWorktrees = !m.includeWorktrees
+				m.state = StateLoading
+				if m.includeWorktrees {
+					m.statusMsg = "Including worktrees — rescanning..."
+				} else {
+					m.statusMsg = "Excluding worktrees — rescanning..."
+				}
+				return m, scanReposCmd(m.cfg, true, m.includeWorktrees)
+			}
 
 		case "f":
 			// Cycle through filter modes
