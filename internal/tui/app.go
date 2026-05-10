@@ -36,8 +36,9 @@ func scanReposCmd(cfg *config.Config, forceRefresh, includeWorktrees bool) tea.C
 				cacheStore.IsSameRoots(cfg.Roots) &&
 				cacheStore.IsSameIncludeWorktrees(includeWorktrees) {
 				return scanCompleteMsg{
-					repos:     cached.Repos,
-					fromCache: true,
+					repos:             cached.Repos,
+					fromCache:         true,
+					includedWorktrees: includeWorktrees,
 				}
 			}
 		}
@@ -52,16 +53,18 @@ func scanReposCmd(cfg *config.Config, forceRefresh, includeWorktrees bool) tea.C
 		_ = cacheStore.Save(repos, cfg.Roots, includeWorktrees)
 
 		return scanCompleteMsg{
-			repos:     repos,
-			fromCache: false,
+			repos:             repos,
+			fromCache:         false,
+			includedWorktrees: includeWorktrees,
 		}
 	}
 }
 
 // scanCompleteMsg is sent when scanning is complete
 type scanCompleteMsg struct {
-	repos     []model.Repo
-	fromCache bool
+	repos             []model.Repo
+	fromCache         bool
+	includedWorktrees bool
 }
 
 // scanErrorMsg is sent when scanning fails

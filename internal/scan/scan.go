@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -38,32 +39,48 @@ func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 	return ScanRootsWithOptions(roots, ignore, false)
 }
 
+// repoFinding is a repo discovered by the directory walk, before its git
+// status has been resolved.
+type repoFinding struct {
+	path       string
+	isWorktree bool
+}
+
 // ScanRootsWithOptions is like ScanRoots but also accepts toggles. When
 // includeWorktrees is true, linked worktrees (.git is a regular file
 // containing a "gitdir:" pointer) are returned alongside regular repos.
+//
+// The scan runs in two phases: a parallel directory walk discovers repos,
+// then a fixed worker pool resolves git status for each finding. The status
+// phase is the bottleneck on large trees (every repo forks `git`), so
+// parallelism here scales nearly linearly with CPU count on cold scans.
 func ScanRootsWithOptions(roots, ignore []string, includeWorktrees bool) ([]model.Repo, error) {
 	// Build ignore set from user config + smart defaults
 	ignoreSet := make(map[string]struct{}, len(ignore)+len(smartIgnorePatterns))
-
-	// Add user-defined ignores
 	for _, pattern := range ignore {
 		ignoreSet[pattern] = struct{}{}
 	}
-
-	// Add smart defaults (always apply for performance)
 	for _, pattern := range smartIgnorePatterns {
 		ignoreSet[pattern] = struct{}{}
 	}
 
+	// Phase 1: discover repos in parallel by root.
+	findings := discoverRepos(roots, ignoreSet, includeWorktrees)
+
+	// Phase 2: resolve git status concurrently across a worker pool.
+	return resolveStatuses(findings), nil
+}
+
+// discoverRepos walks each root in parallel and returns repo findings.
+// Walks share an ignore set; results are deduplicated implicitly because
+// `.git` directories are pruned from further traversal.
+func discoverRepos(roots []string, ignoreSet map[string]struct{}, includeWorktrees bool) []repoFinding {
 	var mu sync.Mutex
-	var repos []model.Repo
+	var findings []repoFinding
 	var wg sync.WaitGroup
 
 	for _, root := range roots {
-		// Expand ~ and environment variables
 		root = expandPath(root)
-
-		// Check if root exists
 		if _, err := os.Stat(root); os.IsNotExist(err) {
 			continue
 		}
@@ -71,54 +88,88 @@ func ScanRootsWithOptions(roots, ignore []string, includeWorktrees bool) ([]mode
 		wg.Add(1)
 		go func(r string) {
 			defer wg.Done()
-			err := filepath.WalkDir(r, func(path string, d os.DirEntry, err error) error {
-				if err != nil {
-					// Skip directories we can't access
-					return nil
-				}
-
-				// Skip ignored directories
-				if d.IsDir() && shouldIgnore(d.Name(), ignoreSet) {
-					return filepath.SkipDir
-				}
-
-				// Found a .git directory — regular repository
-				if d.IsDir() && d.Name() == ".git" {
-					repo := buildRepo(path, false)
-					mu.Lock()
-					repos = append(repos, repo)
-					mu.Unlock()
-					return filepath.SkipDir
-				}
-
-				// Found a .git file — linked worktree (opt-in)
-				if includeWorktrees && !d.IsDir() && d.Name() == ".git" {
-					if isWorktreeGitfile(path) {
-						repo := buildRepo(path, true)
-						mu.Lock()
-						repos = append(repos, repo)
-						mu.Unlock()
-					}
-					return nil
-				}
-
-				return nil
-			})
-			if err != nil {
-				// Log but don't fail
-				fmt.Fprintf(os.Stderr, "warning: scan error in %s: %v\n", r, err)
+			local := walkRoot(r, ignoreSet, includeWorktrees)
+			if len(local) == 0 {
+				return
 			}
+			mu.Lock()
+			findings = append(findings, local...)
+			mu.Unlock()
 		}(root)
 	}
 
 	wg.Wait()
-	return repos, nil
+	return findings
 }
 
-// buildRepo constructs a Repo from a .git path (directory for regular repos,
-// file for worktrees). The repo's path is the parent of the .git entry.
-func buildRepo(gitPath string, isWorktree bool) model.Repo {
-	repoPath := filepath.Dir(gitPath)
+// walkRoot walks one root and returns the repos it found.
+func walkRoot(root string, ignoreSet map[string]struct{}, includeWorktrees bool) []repoFinding {
+	var findings []repoFinding
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() && shouldIgnore(d.Name(), ignoreSet) {
+			return filepath.SkipDir
+		}
+		if d.IsDir() && d.Name() == ".git" {
+			findings = append(findings, repoFinding{path: filepath.Dir(path), isWorktree: false})
+			return filepath.SkipDir
+		}
+		if includeWorktrees && !d.IsDir() && d.Name() == ".git" && isWorktreeGitfile(path) {
+			findings = append(findings, repoFinding{path: filepath.Dir(path), isWorktree: true})
+		}
+		return nil
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: scan error in %s: %v\n", root, err)
+	}
+	return findings
+}
+
+// resolveStatuses runs gitstatus.Status across a worker pool. Order is not
+// preserved; the TUI sorts results separately.
+func resolveStatuses(findings []repoFinding) []model.Repo {
+	if len(findings) == 0 {
+		return nil
+	}
+
+	workers := runtime.NumCPU() * 2
+	if workers > len(findings) {
+		workers = len(findings)
+	}
+
+	jobs := make(chan repoFinding, len(findings))
+	for _, f := range findings {
+		jobs <- f
+	}
+	close(jobs)
+
+	results := make(chan model.Repo, len(findings))
+	var wg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for f := range jobs {
+				results <- buildRepo(f.path, f.isWorktree)
+			}
+		}()
+	}
+	wg.Wait()
+	close(results)
+
+	repos := make([]model.Repo, 0, len(findings))
+	for r := range results {
+		repos = append(repos, r)
+	}
+	return repos
+}
+
+// buildRepo constructs a Repo from a working-tree path. Resolves the path to
+// absolute form so the repo name uses the real basename even when the input
+// was relative.
+func buildRepo(repoPath string, isWorktree bool) model.Repo {
 	if abs, err := filepath.Abs(repoPath); err == nil {
 		repoPath = abs
 	}

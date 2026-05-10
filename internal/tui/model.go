@@ -77,9 +77,13 @@ type Model struct {
 	// Pagination state
 	currentPage int
 	pageSize    int
-	// Live toggle for including linked worktrees in scan results.
+	// Live toggle for including linked worktrees in the displayed set.
 	// Initialised from cfg.IncludeWorktrees; can be flipped at runtime via 'W'.
 	includeWorktrees bool
+	// Whether the most recent scan that produced m.repos included worktrees.
+	// If true and the user toggles worktrees off, we can filter in-memory
+	// without rescanning. If false and the user toggles them on, we must rescan.
+	lastScanIncludesWorktrees bool
 }
 
 // NewModel creates a new TUI model
@@ -184,6 +188,11 @@ func (m *Model) applyFilter() {
 	m.filteredRepos = make([]model.Repo, 0, len(m.repos))
 
 	for _, r := range m.repos {
+		// Worktree visibility — also affects stats totals.
+		if !m.includeWorktrees && r.IsWorktree {
+			continue
+		}
+
 		// Apply filter mode
 		switch m.filterMode {
 		case FilterDirty:

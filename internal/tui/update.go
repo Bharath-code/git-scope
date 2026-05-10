@@ -36,6 +36,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case scanCompleteMsg:
 		m.repos = msg.repos
+		m.lastScanIncludesWorktrees = msg.includedWorktrees
 		m.state = StateReady
 		m.resetPage()
 		m.updateTable()
@@ -185,18 +186,32 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, scanReposCmd(m.cfg, true, m.includeWorktrees)
 
 		case "W":
-			// Toggle linked-worktree inclusion and rescan.
-			// Single command — flips visibility AND total/dirty/clean counts.
-			if m.state == StateReady {
-				m.includeWorktrees = !m.includeWorktrees
-				m.state = StateLoading
-				if m.includeWorktrees {
-					m.statusMsg = "Including worktrees — rescanning..."
-				} else {
-					m.statusMsg = "Excluding worktrees — rescanning..."
-				}
-				return m, scanReposCmd(m.cfg, true, m.includeWorktrees)
+			// Toggle linked-worktree inclusion. Single command — affects
+			// both visibility and totals.
+			//
+			// Fast path: if the current scan already covers the desired
+			// view (we have worktrees and just need to hide them, or we
+			// don't need worktrees), this is an instant in-memory filter.
+			// Slow path: only when going from "no worktrees scanned" to
+			// "show worktrees" — we genuinely don't have the data yet.
+			if m.state != StateReady {
+				break
 			}
+			m.includeWorktrees = !m.includeWorktrees
+			needRescan := m.includeWorktrees && !m.lastScanIncludesWorktrees
+			if !needRescan {
+				m.resetPage()
+				m.updateTable()
+				if m.includeWorktrees {
+					m.statusMsg = "Worktrees: shown"
+				} else {
+					m.statusMsg = "Worktrees: hidden"
+				}
+				return m, nil
+			}
+			m.state = StateLoading
+			m.statusMsg = "Scanning worktrees..."
+			return m, scanReposCmd(m.cfg, true, m.includeWorktrees)
 
 		case "f":
 			// Cycle through filter modes

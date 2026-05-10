@@ -204,12 +204,18 @@ func (m Model) renderSearchBadge() string {
 }
 
 func (m Model) renderStats() string {
-	total := len(m.repos)
-	shown := len(m.sortedRepos)
+	// "Total" reflects the effective base set: raw scan minus worktrees when
+	// the toggle is off. Keeps the count consistent with what the table shows
+	// before search/filter narrowing.
+	total := 0
 	dirty := 0
 	clean := 0
 	worktrees := 0
 	for _, r := range m.repos {
+		if !m.includeWorktrees && r.IsWorktree {
+			continue
+		}
+		total++
 		if r.Status.IsDirty {
 			dirty++
 		} else {
@@ -219,6 +225,7 @@ func (m Model) renderStats() string {
 			worktrees++
 		}
 	}
+	shown := len(m.sortedRepos)
 
 	stats := []string{}
 
