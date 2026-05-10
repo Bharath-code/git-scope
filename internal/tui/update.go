@@ -5,6 +5,7 @@ import (
 	"os/exec"
 
 	"github.com/Bharath-code/git-scope/internal/browser"
+	"github.com/Bharath-code/git-scope/internal/config"
 	"github.com/Bharath-code/git-scope/internal/model"
 	"github.com/Bharath-code/git-scope/internal/nudge"
 	"github.com/Bharath-code/git-scope/internal/scan"
@@ -198,6 +199,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 			m.includeWorktrees = !m.includeWorktrees
+			// Persist so the toggle survives restarts. Best-effort —
+			// failures don't surface; the toggle still works in-session.
+			_ = config.SaveState(config.DefaultStatePath(), config.State{
+				IncludeWorktrees: m.includeWorktrees,
+			})
 			needRescan := m.includeWorktrees && !m.lastScanIncludesWorktrees
 			if !needRescan {
 				m.resetPage()

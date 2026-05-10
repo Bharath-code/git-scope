@@ -160,7 +160,13 @@ func run(cmd string, dirs []string, opts options) error {
 		cfg.Roots = getSmartDefaults()
 	}
 
-	// CLI flag overrides the config value when explicitly set
+	// Resolution order for IncludeWorktrees, low → high precedence:
+	//   1. Config file (`includeWorktrees: ...`)
+	//   2. State file (`~/.config/git-scope/state.json`) — runtime W toggle
+	//   3. CLI flag (`--worktrees`)
+	if state, err := config.LoadState(config.DefaultStatePath()); err == nil {
+		cfg.IncludeWorktrees = state.IncludeWorktrees
+	}
 	if opts.WorktreesSet {
 		cfg.IncludeWorktrees = opts.IncludeWorktrees
 	}

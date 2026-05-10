@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -104,6 +105,55 @@ func DefaultConfigPath() string {
 		return "./config.yml"
 	}
 	return filepath.Join(home, ".config", "git-scope", "config.yml")
+}
+
+// State holds user-toggled preferences that should persist across runs but
+// don't belong in the human-edited YAML config (and would clobber its
+// comments on rewrite).
+type State struct {
+	IncludeWorktrees bool `json:"include_worktrees"`
+}
+
+// DefaultStatePath returns the default location for the state file.
+func DefaultStatePath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "./state.json"
+	}
+	return filepath.Join(home, ".config", "git-scope", "state.json")
+}
+
+// LoadState reads the persisted state file. Returns a zero-value State and
+// no error when the file is missing — first-run is not an error.
+func LoadState(path string) (State, error) {
+	var s State
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return s, nil
+		}
+		return s, fmt.Errorf("read state: %w", err)
+	}
+	if err := json.Unmarshal(data, &s); err != nil {
+		return s, fmt.Errorf("parse state: %w", err)
+	}
+	return s, nil
+}
+
+// SaveState writes the state file, creating the parent directory as needed.
+func SaveState(path string, s State) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("create state dir: %w", err)
+	}
+	data, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal state: %w", err)
+	}
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("write state: %w", err)
+	}
+	return nil
 }
 
 // ConfigExists checks if a config file exists at the given path
