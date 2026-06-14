@@ -133,6 +133,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case fetchCompleteMsg:
+		m.repos = msg.repos
+		m.resetPage()
+		m.updateTable()
+		m.statusMsg = "⬇ " + msg.summary.String()
+		return m, nil
+
 	case tea.KeyMsg:
 		// Handle search mode separately
 		if m.state == StateSearching {
@@ -183,6 +190,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = StateLoading
 			m.statusMsg = "Rescanning..."
 			return m, scanReposCmd(m.cfg, true)
+
+		case "F":
+			// Bulk fetch all repos (network-only, non-destructive)
+			if m.state == StateReady && len(m.repos) > 0 {
+				m.statusMsg = "🔄 Fetching all repos…"
+				return m, fetchAllCmd(m.cfg, m.repos)
+			}
 
 		case "f":
 			// Cycle through filter modes

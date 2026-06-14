@@ -13,6 +13,12 @@
 # Cache
 .git-scope-cache.json
 
+# Test coverage
+*.out
+
+# Local notes (not for publishing)
+PROJECT-STRATEGY-AND-CAREER-PLAYBOOK.md
+
 # IDE
 .idea/
 .vscode/

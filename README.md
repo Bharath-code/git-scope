@@ -2,6 +2,7 @@
 
 > **A fast TUI dashboard to view the git status of *all your repositories* in one place.** > Stop the `cd` → `git status` loop.
 
+[![CI](https://github.com/Bharath-code/git-scope/actions/workflows/ci.yml/badge.svg)](https://github.com/Bharath-code/git-scope/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Bharath-code/git-scope)](https://goreportcard.com/report/github.com/Bharath-code/git-scope)
 [![GitHub Release](https://img.shields.io/github/v/release/Bharath-code/git-scope?color=8B5CF6)](https://github.com/Bharath-code/git-scope/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -146,6 +147,7 @@ Typical git workflows involve "tunnel vision"—working deep inside one reposito
 | `[` / `]` | **Page Navigation** (Previous / Next) |
 | `Enter` | **Open** repo in Editor |
 | `c` | **Clear** search & filters |
+| `F` | **Fetch All** — update remotes across every repo (safe, read-only) |
 | `r` | **Rescan** directories |
 | `g` | Toggle **Contribution Graph** |
 | `d` | Toggle **Disk Usage** view |
@@ -197,7 +199,8 @@ I built `git-scope` to solve the **"Multi-Repo Blindness"** problem. It gives me
   - [x] In-app workspace switching with Tab completion
   - [x] Symlink resolution for devcontainers/Codespaces
   - [x] Background file watcher (real-time updates)
-  - [ ] Quick actions (bulk pull/fetch)
+  - [x] Bulk fetch all remotes (`F`)
+  - [ ] Quick actions (bulk pull / stash, with confirmation)
   - [ ] Repo grouping (Service / Team / Stack)
   - [ ] Custom team dashboards
 
