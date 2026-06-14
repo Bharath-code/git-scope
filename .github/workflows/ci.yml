@@ -53,3 +53,6 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          # Build golangci-lint with the repo's Go toolchain so it can analyze
+          # the targeted Go version (prebuilt binaries lag behind new releases).
+          install-mode: goinstall
