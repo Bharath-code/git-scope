@@ -52,7 +52,8 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          # Pinned for reproducible runs — bump deliberately, not on every push.
+          version: v2.12.2
           # Build golangci-lint with the repo's Go toolchain so it can analyze
           # the targeted Go version (prebuilt binaries lag behind new releases).
           install-mode: goinstall
