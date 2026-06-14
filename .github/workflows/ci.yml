@@ -50,7 +50,8 @@ jobs:
           cache: true
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        # v9 supports golangci-lint v2 (correct /v2 module path for goinstall).
+        uses: golangci/golangci-lint-action@v9
         with:
           # Pinned for reproducible runs — bump deliberately, not on every push.
           version: v2.12.2
