@@ -149,7 +149,6 @@ func NewModel(cfg *config.Config) Model {
 		sortMode:       SortByDirty,
 		filterMode:     FilterAll,
 		currentPage:    0,
-		pageSize:       cfg.PageSize,
 	}
 }
 
@@ -361,7 +360,7 @@ func formatNumber(n int) string {
 	return fmt.Sprintf("%d", n)
 }
 
-// resizeTable calculates and sets the correct table height based on UI state
+// resizeTable calculates and sets the correct table height based on UI state.
 func (m *Model) resizeTable() {
 	usedHeight := 12 // Header + Stats + Legend + Help + Padding
 	if m.state == StateSearching {
@@ -369,7 +368,6 @@ func (m *Model) resizeTable() {
 	} else if m.searchQuery != "" {
 		usedHeight += 1 // Search badge
 	}
-
 	h := m.height - usedHeight
 	if h < 1 {
 		h = 1
@@ -380,6 +378,6 @@ func (m *Model) resizeTable() {
 	if h < 5 {
 		h = 5
 	}
-	m.pageSize = h  // Update page size based on new height
-	m.updateTable() // Refresh table to apply new page size
+	m.pageSize = h
+	m.updateTable()
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Bharath-code/git-scope/internal/version"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -104,8 +105,8 @@ func (m Model) renderDashboard() string {
 
 	// Header with logo on its own line
 	logo := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#A78BFA")).Render("git-scope")
-	version := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v1.3.0")
-	b.WriteString(logo + version)
+	ver := lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280")).Render(" v" + version.Version)
+	b.WriteString(logo + ver)
 	b.WriteString("\n\n")
 
 	// Stats bar (always show first for consistent layout)

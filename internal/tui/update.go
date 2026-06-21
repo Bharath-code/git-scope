@@ -38,7 +38,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.repos = msg.repos
 		m.state = StateReady
 		m.resetPage()
-		m.updateTable()
+		m.resizeTable()
 
 		// Show helpful message if no repos found
 		if len(msg.repos) == 0 {
@@ -59,7 +59,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.repos = msg.repos
 		m.state = StateReady
 		m.resetPage()
-		m.updateTable()
+		m.resizeTable()
 
 		// Show helpful message about switched workspace
 		if len(msg.repos) == 0 {
@@ -189,7 +189,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == StateReady {
 				m.filterMode = (m.filterMode + 1) % 3
 				m.resetPage()
-				m.updateTable()
+				m.resizeTable()
 				m.statusMsg = "Filter: " + m.GetFilterModeName()
 				return m, nil
 			}
@@ -198,7 +198,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == StateReady {
 				m.sortMode = (m.sortMode + 1) % 4
 				m.resetPage()
-				m.updateTable()
+				m.resizeTable()
 				m.statusMsg = "Sorted by: " + m.GetSortModeName()
 				return m, nil
 			}
@@ -207,7 +207,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == StateReady {
 				m.sortMode = SortByDirty
 				m.resetPage()
-				m.updateTable()
+				m.resizeTable()
 				m.statusMsg = "Sorted by: Dirty First"
 				return m, nil
 			}
@@ -216,7 +216,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == StateReady {
 				m.sortMode = SortByName
 				m.resetPage()
-				m.updateTable()
+				m.resizeTable()
 				m.statusMsg = "Sorted by: Name"
 				return m, nil
 			}
@@ -225,7 +225,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == StateReady {
 				m.sortMode = SortByBranch
 				m.resetPage()
-				m.updateTable()
+				m.resizeTable()
 				m.statusMsg = "Sorted by: Branch"
 				return m, nil
 			}
@@ -234,7 +234,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == StateReady {
 				m.sortMode = SortByLastCommit
 				m.resetPage()
-				m.updateTable()
+				m.resizeTable()
 				m.statusMsg = "Sorted by: Recent"
 				return m, nil
 			}
@@ -247,7 +247,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.filterMode = FilterAll
 				m.resetPage()
 				m.resizeTable()
-				m.updateTable()
 				m.statusMsg = "Filters cleared"
 				return m, nil
 			}
@@ -372,10 +371,9 @@ func (m Model) handleSearchMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Apply search
 		m.searchQuery = m.textInput.Value()
 		m.state = StateReady
-		m.resizeTable()
 		m.textInput.Blur()
 		m.resetPage()
-		m.updateTable()
+		m.resizeTable()
 		if m.searchQuery != "" {
 			m.statusMsg = "Searching: " + m.searchQuery
 		} else {
