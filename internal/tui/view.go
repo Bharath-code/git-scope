@@ -320,6 +320,7 @@ func (m Model) renderHelp() string {
 			keyBinding("g", "grass"),
 			keyBinding("d", "disk"),
 			keyBinding("t", "time"),
+			keyBinding("F", "fetch all"),
 			keyBinding("r", "rescan"),
 			keyBinding("q", "quit"),
 		}

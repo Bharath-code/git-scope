@@ -1,6 +1,6 @@
 module github.com/Bharath-code/git-scope
 
-go 1.20
+go 1.26.0
 
 require (
 	github.com/charmbracelet/bubbles v0.18.0

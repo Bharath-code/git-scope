@@ -27,12 +27,6 @@ var (
 	heatmapLevel3 = lipgloss.NewStyle().Foreground(lipgloss.Color("#26a641")) // Medium-High
 	heatmapLevel4 = lipgloss.NewStyle().Foreground(lipgloss.Color("#39d353")) // High
 
-	// Panel styling - Tuimorphic borders
-	panelBorderStyle = lipgloss.NewStyle().
-				BorderStyle(lipgloss.RoundedBorder()).
-				BorderForeground(lipgloss.Color("#30363d")).
-				Padding(0, 1)
-
 	// Active panel border (when focused)
 	panelBorderActiveStyle = lipgloss.NewStyle().
 				BorderStyle(lipgloss.RoundedBorder()).
@@ -186,26 +180,8 @@ func getHeatmapBlock(level int) string {
 	}
 }
 
-// getPanelHelp returns help text for the active panel
-func getPanelHelp(panel PanelType) string {
-	switch panel {
-	case PanelGrass:
-		return helpItem("g", "close") + " • " + helpItem("esc", "close")
-	case PanelDisk:
-		return helpItem("d", "close") + " • " + helpItem("esc", "close")
-	case PanelTimeline:
-		return helpItem("t", "close") + " • " + helpItem("esc", "close")
-	default:
-		return ""
-	}
-}
-
 // Disk usage color palette (warm gradient for size visualization)
 var (
-	diskBarLow        = lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e")) // Green - small
-	diskBarMed        = lipgloss.NewStyle().Foreground(lipgloss.Color("#eab308")) // Yellow - medium
-	diskBarHigh       = lipgloss.NewStyle().Foreground(lipgloss.Color("#f97316")) // Orange - large
-	diskBarMax        = lipgloss.NewStyle().Foreground(lipgloss.Color("#ef4444")) // Red - huge
 	diskNameStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF"))
 	diskSizeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#A78BFA")).Bold(true)
 	diskNodeSizeStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#F97316")).Bold(true) // Orange for node_modules value
