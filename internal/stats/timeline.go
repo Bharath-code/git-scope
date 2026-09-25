@@ -1,11 +1,12 @@
 package stats
 
 import (
-	"os/exec"
+	"context"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/Bharath-code/git-scope/internal/gitstatus"
 	"github.com/Bharath-code/git-scope/internal/model"
 )
 
@@ -69,9 +70,7 @@ func GetTimeline(repos []model.Repo) (*TimelineData, error) {
 
 // getLastCommitMessage gets the last commit message for a repo
 func getLastCommitMessage(repoPath string) string {
-	cmd := exec.Command("git", "log", "-1", "--format=%s")
-	cmd.Dir = repoPath
-	out, err := cmd.Output()
+	out, err := gitstatus.Command(context.Background(), repoPath, "log", "-1", "--format=%s").Output()
 	if err != nil {
 		return ""
 	}

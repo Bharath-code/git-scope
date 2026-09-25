@@ -1,7 +1,9 @@
 package gitstatus
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -43,12 +45,23 @@ func Status(repoPath string) (model.RepoStatus, error) {
 	return status, nil
 }
 
-// runGit is a helper that executes a git command with the given arguments
-// in the specified directory and returns its stdout output
-func runGit(dir string, args ...string) ([]byte, error) {
-	cmd := exec.Command("git", args...)
+// safeArgs neutralise repo config that would make a read turn into a write or
+// an exec: core.fsmonitor names a program git runs during status, and
+// --no-optional-locks stops status from rewriting .git/index.
+var safeArgs = []string{"-c", "core.fsmonitor=false", "--no-optional-locks"}
+
+// Command builds a git command that is safe to run inside repositories
+// git-scope did not create. Every git invocation should go through it.
+func Command(ctx context.Context, dir string, args ...string) *exec.Cmd {
+	cmd := exec.CommandContext(ctx, "git", append(append([]string{}, safeArgs...), args...)...)
 	cmd.Dir = dir
-	return cmd.Output()
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	return cmd
+}
+
+// runGit runs a git command in dir and returns its stdout.
+func runGit(dir string, args ...string) ([]byte, error) {
+	return Command(context.Background(), dir, args...).Output()
 }
 
 // applyBranchHeader parses porcelain v2 branch metadata lines and updates

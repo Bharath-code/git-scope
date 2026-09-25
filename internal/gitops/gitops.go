@@ -8,11 +8,11 @@ package gitops
 import (
 	"context"
 	"fmt"
-	"os/exec"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/Bharath-code/git-scope/internal/gitstatus"
 	"github.com/Bharath-code/git-scope/internal/model"
 )
 
@@ -112,8 +112,7 @@ func fetchOne(repo model.Repo) ActionResult {
 	ctx, cancel := context.WithTimeout(context.Background(), fetchTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "git", "fetch", "--all", "--quiet")
-	cmd.Dir = repo.Path
+	cmd := gitstatus.Command(ctx, repo.Path, "fetch", "--all", "--quiet")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		res.Status = StatusFailed
@@ -127,9 +126,7 @@ func fetchOne(repo model.Repo) ActionResult {
 
 // hasRemote reports whether the repository has at least one configured remote.
 func hasRemote(path string) bool {
-	cmd := exec.Command("git", "remote")
-	cmd.Dir = path
-	out, err := cmd.Output()
+	out, err := gitstatus.Command(context.Background(), path, "remote").Output()
 	if err != nil {
 		return false
 	}
