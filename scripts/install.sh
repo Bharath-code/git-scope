@@ -83,9 +83,27 @@ main() {
     trap "rm -rf ${TMP_DIR}" EXIT
 
     # Download and extract
-    if ! curl -sSL "${DOWNLOAD_URL}" -o "${TMP_DIR}/archive.tar.gz"; then
+    if ! curl -fsSL "${DOWNLOAD_URL}" -o "${TMP_DIR}/archive.tar.gz"; then
         error "Failed to download. Check if the release exists for your platform."
     fi
+
+    CHECKSUMS_URL="https://github.com/${REPO}/releases/download/${VERSION}/checksums.txt"
+    if ! curl -fsSL "${CHECKSUMS_URL}" -o "${TMP_DIR}/checksums.txt"; then
+        error "Failed to download checksums.txt; refusing to install an unverified binary."
+    fi
+    EXPECTED=$(grep " ${ARCHIVE_NAME}\$" "${TMP_DIR}/checksums.txt" | awk '{print $1}')
+    if [ -z "$EXPECTED" ]; then
+        error "No checksum listed for ${ARCHIVE_NAME}."
+    fi
+    if command -v sha256sum >/dev/null 2>&1; then
+        ACTUAL=$(sha256sum "${TMP_DIR}/archive.tar.gz" | awk '{print $1}')
+    else
+        ACTUAL=$(shasum -a 256 "${TMP_DIR}/archive.tar.gz" | awk '{print $1}')
+    fi
+    if [ "$EXPECTED" != "$ACTUAL" ]; then
+        error "Checksum mismatch for ${ARCHIVE_NAME} (expected ${EXPECTED}, got ${ACTUAL})."
+    fi
+    info "Checksum verified."
 
     tar xzf "${TMP_DIR}/archive.tar.gz" -C "${TMP_DIR}"
 

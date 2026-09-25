@@ -11,11 +11,13 @@ import (
 
 	"github.com/Bharath-code/git-scope/internal/browser"
 	"github.com/Bharath-code/git-scope/internal/config"
+	"github.com/Bharath-code/git-scope/internal/nudge"
 	"github.com/Bharath-code/git-scope/internal/scan"
 	"github.com/Bharath-code/git-scope/internal/tui"
 )
 
-const version = "1.0.1"
+// version is set at release time via -ldflags "-X main.version=…" (must be a var).
+var version = "dev"
 
 type options struct {
 	ConfigPath  string
@@ -55,6 +57,7 @@ func printVersion() {
 }
 
 func main() {
+	nudge.Version = version
 	flag.Usage = usage
 
 	opts := parseFlags()
