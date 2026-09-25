@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/Bharath-code/git-scope/internal/attention"
 	"github.com/Bharath-code/git-scope/internal/config"
 	"github.com/Bharath-code/git-scope/internal/model"
 	"github.com/Bharath-code/git-scope/internal/stats"
@@ -30,10 +32,12 @@ const (
 type SortMode int
 
 const (
-	SortByDirty SortMode = iota
+	SortByAttention SortMode = iota
+	SortByDirty
 	SortByName
 	SortByBranch
 	SortByLastCommit
+	sortModeCount
 )
 
 // FilterMode represents different filter options
@@ -146,7 +150,7 @@ func NewModel(cfg *config.Config) Model {
 		workspaceInput: wi,
 		spinner:        sp,
 		state:          StateLoading,
-		sortMode:       SortByDirty,
+		sortMode:       SortByAttention,
 		filterMode:     FilterAll,
 		currentPage:    0,
 		pageSize:       cfg.PageSize,
@@ -215,6 +219,11 @@ func (m *Model) sortRepos() {
 	copy(m.sortedRepos, m.filteredRepos)
 
 	switch m.sortMode {
+	case SortByAttention:
+		now := time.Now()
+		sort.SliceStable(m.sortedRepos, func(i, j int) bool {
+			return attention.Less(m.sortedRepos[i], m.sortedRepos[j], now)
+		})
 	case SortByDirty:
 		sort.Slice(m.sortedRepos, func(i, j int) bool {
 			if m.sortedRepos[i].Status.IsDirty != m.sortedRepos[j].Status.IsDirty {
@@ -290,6 +299,8 @@ func (m *Model) resetPage() {
 // GetSortModeName returns the display name of current sort mode
 func (m Model) GetSortModeName() string {
 	switch m.sortMode {
+	case SortByAttention:
+		return "Attention"
 	case SortByDirty:
 		return "Dirty First"
 	case SortByName:
@@ -315,20 +326,31 @@ func (m Model) GetFilterModeName() string {
 	return "All"
 }
 
+// attentionLabel renders a repo's attention tier as a glyph + short label for
+// the Status column.
+func attentionLabel(t attention.Tier) string {
+	switch t {
+	case attention.Action:
+		return "▲ Action"
+	case attention.Watch:
+		return "● Watch"
+	default:
+		return "✓ Clean"
+	}
+}
+
 // reposToRows converts repos to table rows with status indicators
 func reposToRows(repos []model.Repo) []table.Row {
 	rows := make([]table.Row, 0, len(repos))
+	now := time.Now()
 	for _, r := range repos {
 		lastCommit := "N/A"
 		if !r.Status.LastCommit.IsZero() {
 			lastCommit = r.Status.LastCommit.Format("Jan 02 15:04")
 		}
 
-		// Status indicator with text
-		status := "✓ Clean"
-		if r.Status.IsDirty {
-			status = "● Dirty"
-		}
+		// Status indicator: attention tier glyph + label
+		status := attentionLabel(attention.Classify(r.Status, now))
 
 		rows = append(rows, table.Row{
 			status,

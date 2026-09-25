@@ -3,7 +3,9 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/Bharath-code/git-scope/internal/attention"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -206,15 +208,7 @@ func (m Model) renderSearchBadge() string {
 func (m Model) renderStats() string {
 	total := len(m.repos)
 	shown := len(m.sortedRepos)
-	dirty := 0
-	clean := 0
-	for _, r := range m.repos {
-		if r.Status.IsDirty {
-			dirty++
-		} else {
-			clean++
-		}
-	}
+	sum := attention.Summarize(m.sortedRepos, time.Now())
 
 	stats := []string{}
 
@@ -225,11 +219,18 @@ func (m Model) renderStats() string {
 		stats = append(stats, statsBadgeStyle.Render(fmt.Sprintf("📁 %d/%d repos", shown, total)))
 	}
 
-	if dirty > 0 {
-		stats = append(stats, dirtyBadgeStyle.Render(fmt.Sprintf("● %d dirty", dirty)))
+	// Attention summary: the at-a-glance verdict across the displayed set
+	if sum.ToPush > 0 {
+		stats = append(stats, pushBadgeStyle.Render(fmt.Sprintf("▲ %d to push", sum.ToPush)))
 	}
-	if clean > 0 {
-		stats = append(stats, cleanBadgeStyle.Render(fmt.Sprintf("✓ %d clean", clean)))
+	if sum.Behind > 0 {
+		stats = append(stats, behindBadgeStyle.Render(fmt.Sprintf("▼ %d behind", sum.Behind)))
+	}
+	if sum.Dirty > 0 {
+		stats = append(stats, dirtyBadgeStyle.Render(fmt.Sprintf("● %d dirty", sum.Dirty)))
+	}
+	if sum.Clean > 0 {
+		stats = append(stats, cleanBadgeStyle.Render(fmt.Sprintf("✓ %d clean", sum.Clean)))
 	}
 
 	// Filter indicator with inline hint

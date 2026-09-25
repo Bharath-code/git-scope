@@ -102,6 +102,7 @@ git-scope -h           # Show help
 
 ## ✨ Features
 
+  * **🎯 Attention Summary** — At-a-glance verdict of your whole workspace: `▲ to push · ▼ behind · ● dirty · ✓ clean`. Repos are ranked into **Action / Watch / Clean** tiers and sorted by default so what needs you lands at the top.
   * **📁 Workspace Switch** — Switch root directories without quitting (`w`). Supports `~`, relative paths, and **symlinks**.
   * **🔍 Fuzzy Search** — Find any repo by name, path, or branch (`/`).
   * **🛡️ Dirty Filter** — Instantly show only repos with uncommitted changes (`f`).
@@ -142,7 +143,7 @@ Typical git workflows involve "tunnel vision"—working deep inside one reposito
 | `w` | **Switch Workspace** (with Tab completion) |
 | `/` | **Search** repositories (Fuzzy) |
 | `f` | **Filter** (Cycle: All / Dirty / Clean) |
-| `s` | Cycle **Sort** Mode |
+| `s` | Cycle **Sort** Mode (Attention / Dirty / Name / Branch / Recent) |
 | `1`–`4` | Sort by: Dirty / Name / Branch / Recent |
 | `[` / `]` | **Page Navigation** (Previous / Next) |
 | `Enter` | **Open** repo in Editor |
@@ -153,6 +154,8 @@ Typical git workflows involve "tunnel vision"—working deep inside one reposito
 | `d` | Toggle **Disk Usage** view |
 | `t` | Toggle **Timeline** view |
 | `q` | Quit |
+
+> The dashboard sorts by **Attention** on launch (Action repos first). Press `s` to cycle to the classic sorts, or `1`–`4` to jump directly.
 
 -----
 
@@ -200,6 +203,7 @@ I built `git-scope` to solve the **"Multi-Repo Blindness"** problem. It gives me
   - [x] Symlink resolution for devcontainers/Codespaces
   - [x] Background file watcher (real-time updates)
   - [x] Bulk fetch all remotes (`F`)
+  - [x] Attention summary + tiered scoring (at-a-glance verdict)
   - [ ] Quick actions (bulk pull / stash, with confirmation)
   - [ ] Repo grouping (Service / Team / Stack)
   - [ ] Custom team dashboards
