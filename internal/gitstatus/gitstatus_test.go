@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/Bharath-code/git-scope/internal/model"
@@ -168,5 +169,27 @@ func TestStatus_NonRepoReturnsError(t *testing.T) {
 	}
 	if _, err := Status(t.TempDir()); err == nil {
 		t.Error("expected error for non-git directory, got nil")
+	}
+}
+
+// A repo's own config must not be able to make git-scope execute code.
+// core.fsmonitor names a program git runs during `git status`.
+func TestStatus_IgnoresRepoFsmonitor(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses a shell script hook")
+	}
+	dir := initRepoWithCommit(t)
+	marker := filepath.Join(t.TempDir(), "executed")
+	hook := filepath.Join(dir, "hook.sh")
+	if err := os.WriteFile(hook, []byte("#!/bin/sh\ntouch "+marker+"\n"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, dir, "config", "core.fsmonitor", hook)
+
+	if _, err := Status(dir); err != nil {
+		t.Fatalf("Status: %v", err)
+	}
+	if _, err := os.Stat(marker); err == nil {
+		t.Fatal("core.fsmonitor from repo config was executed")
 	}
 }

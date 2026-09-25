@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 )
 
-// Version is the current app version - used to track per-version nudge
-const Version = "1.3.0"
+// Version is the running app version, set by main at startup; the nudge
+// shows at most once per version.
+var Version = "dev"
 
 // GitHubRepoURL is the URL to open when user presses S
 const GitHubRepoURL = "https://github.com/Bharath-code/git-scope"

@@ -1,11 +1,12 @@
 package stats
 
 import (
-	"os/exec"
+	"context"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Bharath-code/git-scope/internal/gitstatus"
 	"github.com/Bharath-code/git-scope/internal/model"
 )
 
@@ -50,9 +51,7 @@ func GetContributions(repos []model.Repo, weeks int) (*ContributionData, error) 
 
 // getRepoCommits returns a list of commit dates (YYYY-MM-DD) from a repo
 func getRepoCommits(repoPath, sinceDate string) ([]string, error) {
-	cmd := exec.Command("git", "log", "--since="+sinceDate, "--format=%ad", "--date=short")
-	cmd.Dir = repoPath
-	out, err := cmd.Output()
+	out, err := gitstatus.Command(context.Background(), repoPath, "log", "--since="+sinceDate, "--format=%ad", "--date=short").Output()
 	if err != nil {
 		return nil, err
 	}

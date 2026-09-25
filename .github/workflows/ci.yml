@@ -38,6 +38,9 @@ jobs:
       - name: Coverage summary
         run: go tool cover -func=coverage.out | tail -n 1
 
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+
   lint:
     name: golangci-lint
     runs-on: ubuntu-latest
