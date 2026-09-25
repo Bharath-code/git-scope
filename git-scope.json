@@ -6,11 +6,11 @@
     "architecture": {
         "64bit": {
             "url": "https://github.com/Bharath-code/git-scope/releases/download/v1.4.0/git-scope_1.4.0_windows_amd64.zip",
-            "hash": ""
+            "hash": "118d5ce3777a66405c8760d24f646ad017face4050315522670c08f4c478a3c5"
         },
         "arm64": {
             "url": "https://github.com/Bharath-code/git-scope/releases/download/v1.4.0/git-scope_1.4.0_windows_arm64.zip",
-            "hash": ""
+            "hash": "5b1c8d821238925b09dd14ce1edb96f9a812bbc311499505fcc715fd4fd5c225"
         }
     },
     "bin": "git-scope.exe",
