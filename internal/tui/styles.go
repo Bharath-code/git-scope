@@ -72,6 +72,18 @@ var (
 			Padding(0, 1).
 			Bold(true)
 
+	pushBadgeStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#000000")).
+			Background(lipgloss.Color("#F59E0B")).
+			Padding(0, 1).
+			Bold(true)
+
+	behindBadgeStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#000000")).
+				Background(lipgloss.Color("#60A5FA")).
+				Padding(0, 1).
+				Bold(true)
+
 	// Keybindings bar styles (Tuimorphic - always visible at bottom)
 	keyBindingsBarStyle = lipgloss.NewStyle().
 				Foreground(textSecondary).

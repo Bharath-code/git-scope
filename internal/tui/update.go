@@ -210,7 +210,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "s":
 			if m.state == StateReady {
-				m.sortMode = (m.sortMode + 1) % 4
+				m.sortMode = (m.sortMode + 1) % sortModeCount
 				m.resetPage()
 				m.updateTable()
 				m.statusMsg = "Sorted by: " + m.GetSortModeName()
