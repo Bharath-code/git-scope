@@ -95,9 +95,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		args := append(fields[1:], msg.path)
-		c := exec.Command(fields[0], args...)
-		return m, tea.ExecProcess(c, func(err error) tea.Msg {
+		return m, tea.ExecProcess(editorCmd(fields, msg.path), func(err error) tea.Msg {
 			if err != nil {
 				return editorClosedMsg{err: err}
 			}
