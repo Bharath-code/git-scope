@@ -176,7 +176,7 @@ ignore:
   - .venv
   - dist
 
-editor: code # options: code,nvim,lazygit,vim,cursor
+editor: code # options: code,nvim,lazygit,vim,cursor — use {path} to place the repo path, e.g. "lazygit --path {path}"
 ```
 
 -----
