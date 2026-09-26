@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lipgloss 0.11 → 1.1; mvdan.cc/sh 3.7 → 3.14 (#38).
 - Bumped GitHub Actions dependencies (#39).
 
+### Removed
+- The `pageSize` config option. Page size has followed terminal height since
+  1.4.0, so the setting had no effect; existing configs that still set it load
+  fine and the key is ignored. Thanks @jimmckeeth for flagging it (#32).
+
 ## [1.4.0] - 2026-09-25
 
 ### Security

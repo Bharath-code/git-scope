@@ -153,7 +153,7 @@ func NewModel(cfg *config.Config) Model {
 		sortMode:       SortByAttention,
 		filterMode:     FilterAll,
 		currentPage:    0,
-		pageSize:       cfg.PageSize,
+		pageSize:       15, // replaced by resizeTable on the first WindowSizeMsg
 	}
 }
 

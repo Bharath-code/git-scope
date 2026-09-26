@@ -15,9 +15,6 @@ func TestLoad_MissingFileReturnsDefaults(t *testing.T) {
 	if cfg.Editor != "code" {
 		t.Errorf("default editor = %q, want %q", cfg.Editor, "code")
 	}
-	if cfg.PageSize != 15 {
-		t.Errorf("default pageSize = %d, want 15", cfg.PageSize)
-	}
 	if len(cfg.Roots) == 0 {
 		t.Error("default roots should not be empty")
 	}
@@ -47,22 +44,19 @@ func TestLoad_ValidFileMergesOverDefaults(t *testing.T) {
 	if !containsString(cfg.Ignore, "node_modules") {
 		t.Errorf("ignore should fall back to defaults, got %v", cfg.Ignore)
 	}
-	if cfg.PageSize != 15 {
-		t.Errorf("pageSize should fall back to 15, got %d", cfg.PageSize)
-	}
 }
 
-func TestLoad_NonPositivePageSizeCoercedTo15(t *testing.T) {
+func TestLoad_IgnoresRemovedPageSizeKey(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yml")
-	if err := os.WriteFile(path, []byte("pageSize: 0\n"), 0644); err != nil {
+	if err := os.WriteFile(path, []byte("pageSize: 30\neditor: nvim\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	cfg, err := Load(path)
 	if err != nil {
-		t.Fatalf("Load: %v", err)
+		t.Fatalf("old configs with pageSize must still load: %v", err)
 	}
-	if cfg.PageSize != 15 {
-		t.Errorf("pageSize = %d, want 15 (coerced)", cfg.PageSize)
+	if cfg.Editor != "nvim" {
+		t.Errorf("editor = %q, want nvim", cfg.Editor)
 	}
 }
 
