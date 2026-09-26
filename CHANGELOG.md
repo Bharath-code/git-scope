@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+- Editor commands support a `{path}` placeholder for the repo path,
+  e.g. `editor: "lazygit --path {path}"` (#41).
+
+### Fixed
+- `editor: lazygit` (and `gitui`, `tig`) now launches correctly instead of
+  treating the repo path as a subcommand. All editors start with the working
+  directory set to the selected repo (#23, #41).
+
+### Changed
+- Upgraded TUI libraries: bubbletea 0.26 → 1.3, bubbles 0.18 → 1.0,
+  lipgloss 0.11 → 1.1; mvdan.cc/sh 3.7 → 3.14 (#38).
+- Bumped GitHub Actions dependencies (#39).
+
 ## [1.4.0] - 2026-09-25
 
 ### Security
