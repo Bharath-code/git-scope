@@ -11,11 +11,10 @@
     <meta name="keywords"
         content="git, tui, git-manager, developer-tools, golang, cli, productivity, git-status, terminal, find git repositories, manage multiple repos, git dashboard">
     <meta name="author" content="Bharath Kumar">
-    <meta name="theme-color" content="#8B5CF6">
+    <meta name="theme-color" content="#07080a">
     <meta name="robots" content="index, follow">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="google-site-verification" content="TpPfXeUVDiIUimzkBojIiZ6zm1iBBE2gxDkOt8G4Hjo" />
-    <!-- Schema.org for Google/AI Search -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -49,7 +48,6 @@
     }
     </script>
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://bharath-code.github.io/git-scope/">
     <meta property="og:title" content="git-scope | Multi-Repo Terminal Dashboard">
@@ -57,7 +55,6 @@
         content="Visualize your entire Git workspace in one screen. A fast, read-only TUI for managing microservices, OSS forks, and complex projects.">
     <meta property="og:image" content="https://bharath-code.github.io/git-scope/og-image.png">
 
-    <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://bharath-code.github.io/git-scope/">
     <meta property="twitter:title" content="git-scope | Multi-Repo Terminal Dashboard">
@@ -65,325 +62,509 @@
         content="Visualize your entire Git workspace in one screen. A fast, read-only TUI for managing microservices and complex projects.">
     <meta property="twitter:image" content="https://bharath-code.github.io/git-scope/og-image.png">
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
 
-    <!-- GoatCounter Analytics (self-hosted to bypass adblockers) -->
     <script data-goatcounter="https://bharathkumar.goatcounter.com/count" async src="count.js"></script>
 
     <style>
+        /* Tokens: see /DESIGN.md (Raycast-inspired system). --brand is git-scope's own accent. */
         :root {
-            --bg: #030305;
-            --surface: #0E0E12;
-            --surface-hover: #18181F;
-            --text-main: #FFFFFF;
-            --text-muted: #A1A1AA;
-            --primary: #8B5CF6;
-            --primary-glow: rgba(139, 92, 246, 0.3);
-            --gradient: linear-gradient(135deg, #C4B5FD 0%, #8B5CF6 100%);
-            --border: #27272A;
-            --tab-bg: #1c1c21;
+            --canvas: #07080a;
+            --surface: #0d0d0d;
+            --surface-elevated: #101111;
+            --surface-card: #121212;
+            --hairline: #242728;
+            --hairline-soft: rgba(255, 255, 255, 0.08);
+            --hairline-strong: rgba(255, 255, 255, 0.16);
+            --ink: #f4f4f6;
+            --body: #cdcdcd;
+            --mute: #9c9c9d;
+            --ash: #6a6b6c;
+            --stone: #434345;
+            --on-dark: #ffffff;
+            --primary: #ffffff;
+            --primary-pressed: #e8e8e8;
+            --on-primary: #000000;
+            --blue: #57c1ff;
+            --blue-soft: rgba(87, 193, 255, 0.15);
+            --red: #ff6161;
+            --red-soft: rgba(255, 97, 97, 0.15);
+            --green: #59d499;
+            --green-soft: rgba(89, 212, 153, 0.15);
+            --yellow: #ffc533;
+            --yellow-soft: rgba(255, 197, 51, 0.15);
+            --brand: #8B5CF6;
+            --r-xs: 4px;
+            --r-sm: 6px;
+            --r-md: 8px;
+            --r-lg: 10px;
+            --r-xl: 16px;
+            --section: 96px;
+            --mono: 'JetBrains Mono', ui-monospace, monospace;
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Inter', system-ui, sans-serif;
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
-
         html {
-            overflow-x: hidden;
+            overflow-x: clip;
             scroll-behavior: smooth;
         }
 
-        code,
-        pre {
-            font-family: 'JetBrains Mono', monospace;
+        body {
+            background: var(--canvas);
+            color: var(--body);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            font-feature-settings: "calt", "kern", "liga", "ss03";
+            -webkit-font-smoothing: antialiased;
+            overflow-x: clip;
         }
 
-        /* Prevent horizontal overflow globally */
         img,
         svg,
-        video,
-        canvas,
-        audio,
-        iframe,
-        embed,
-        object {
+        video {
             max-width: 100%;
             height: auto;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            overflow-x: hidden;
-        }
-
-        /* Nav */
-        nav {
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 20px;
-            z-index: 100;
-            background: rgba(14, 14, 18, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            margin-top: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            animation: nav-pulse 3s ease-in-out;
-        }
-
-        @keyframes nav-pulse {
-            0% {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-                border-color: rgba(255, 255, 255, 0.1);
-            }
-
-            50% {
-                box-shadow: 0 0 30px var(--primary-glow);
-                border-color: var(--primary);
-            }
-
-            100% {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-                border-color: rgba(255, 255, 255, 0.1);
-            }
-        }
-
-        .logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--text-main);
+        a {
+            color: var(--on-dark);
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
-        .logo span {
-            color: var(--primary);
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--on-dark);
+            outline-offset: 2px;
         }
 
-        .github-link {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.2s;
-            font-size: 0.9rem;
+        code {
+            font-family: var(--mono);
+            font-size: 0.875em;
+            color: var(--ink);
+            background: var(--surface-card);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-xs);
+            padding: 1px 6px;
+        }
+
+        .nowrap {
+            white-space: nowrap;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: var(--ink);
             font-weight: 500;
         }
 
-        .github-link:hover {
-            color: var(--text-main);
+        .container {
+            width: 100%;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .eyebrow {
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.4px;
+            color: var(--mute);
+            margin-bottom: 12px;
+        }
+
+        .section {
+            padding: var(--section) 0 0;
+        }
+
+        .section-head {
+            max-width: 640px;
+            margin-bottom: 48px;
+        }
+
+        .section-head h2 {
+            font-size: clamp(32px, 4.5vw, 56px);
+            line-height: 1.17;
+            letter-spacing: 0.2px;
+        }
+
+        .section-head p {
+            font-size: 18px;
+            margin-top: 16px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 36px;
+            padding: 8px 16px;
+            border-radius: var(--r-md);
+            font: 500 14px/1.6 'Inter', system-ui, sans-serif;
+            letter-spacing: 0.2px;
+            font-feature-settings: inherit;
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--on-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-pressed);
+        }
+
+        .btn-primary:active {
+            background: #d6d6d6;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--on-dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface-elevated);
+        }
+
+        .btn-tertiary {
+            background: var(--surface-elevated);
+            color: var(--on-dark);
+            border-color: var(--hairline);
+        }
+
+        .btn-tertiary:hover {
+            border-color: var(--hairline-strong);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--on-dark);
+            border-color: var(--hairline-strong);
+            height: 32px;
+            padding: 6px 14px;
+        }
+
+        .btn-outline:hover {
+            background: var(--surface-elevated);
+        }
+
+        /* Nav */
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(7, 8, 10, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        nav.primary {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: var(--mono);
+            font-weight: 500;
+            font-size: 16px;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 22px;
+            height: 22px;
+            border-radius: var(--r-sm);
+            background: var(--surface-card);
+            border: 1px solid var(--hairline);
+            display: grid;
+            place-items: center;
+        }
+
+        .logo-text span {
+            color: var(--brand);
         }
 
         .nav-links {
             display: flex;
-            gap: 1.5rem;
+            gap: 4px;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            color: var(--body);
+            padding: 6px 12px;
+            border-radius: var(--r-sm);
+            transition: color .15s ease, background-color .15s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--on-dark);
+            background: var(--surface-elevated);
         }
 
         .nav-right {
             display: flex;
-            gap: 1.5rem;
             align-items: center;
+            gap: 8px;
         }
 
-        .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--text-main);
-        }
-
-        .support-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #ec4899;
-            /* Pink-500 for love */
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            padding: 0.4rem 0.8rem;
-            border: 1px solid rgba(236, 72, 153, 0.2);
-            border-radius: 9999px;
-            background: rgba(236, 72, 153, 0.05);
-            transition: all 0.2s ease;
-        }
-
-        .support-btn:hover {
-            background: rgba(236, 72, 153, 0.15);
-            border-color: rgba(236, 72, 153, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .support-text {
-            display: inline;
-        }
-
-        @media (max-width: 768px) {
-            nav {
-                gap: 0.75rem;
-                justify-content: space-between;
-                padding: 1rem 1.25rem;
-                top: 10px;
-                margin-top: 10px;
-            }
-
-            .nav-separator {
-                display: none;
-            }
-
-            .nav-badge.badge-desktop,
-            .nav-badge.badge-mobile {
-                display: none !important;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .support-text {
-                display: none;
-            }
-
-            .support-btn {
-                padding: 0.4rem;
-            }
-
-            .nav-right {
-                gap: 0.5rem;
-                flex: 1;
-                justify-content: flex-end;
-            }
-
-            .logo {
-                font-size: 1.1rem;
-            }
-        }
-
-        /* Nav Badges - Enforce size override global img settings */
         .nav-badge {
             height: 20px !important;
             width: auto;
-            vertical-align: middle;
+            display: block;
+        }
+
+        .support-btn svg {
+            color: var(--red);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 36px;
+            height: 36px;
+            padding: 8px;
+            background: transparent;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            cursor: pointer;
+            z-index: 101;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 18px;
+            height: 1.5px;
+            background: var(--ink);
+            transition: transform .25s, opacity .25s;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: translateY(6.5px) rotate(45deg);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: translateY(-6.5px) rotate(-45deg);
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            inset: 56px 0 0 0;
+            background: var(--canvas);
+            z-index: 99;
+            flex-direction: column;
+            padding: 24px;
+            gap: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease;
+        }
+
+        .mobile-nav.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mobile-nav a {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--ink);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--hairline);
         }
 
         /* Hero */
         .hero {
-            padding: 6rem 0 4rem;
-            text-align: center;
             position: relative;
+            padding: var(--section) 0 0;
+            isolation: isolate;
         }
 
-        .hero::before {
-            content: '';
+        .hero-radar {
             position: absolute;
-            top: -50%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            top: -240px;
+            right: -200px;
+            width: 720px;
+            height: 720px;
             z-index: -1;
-            filter: blur(80px);
-            opacity: 0.6;
+            pointer-events: none;
+            -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+            mask-image: radial-gradient(circle, #000 30%, transparent 70%);
         }
 
-        h1 {
-            font-size: clamp(3rem, 6vw, 5rem);
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
+        .hero-radar .rings {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: repeating-radial-gradient(circle, transparent 0 59px, rgba(139, 92, 246, 0.22) 59px 60px);
         }
 
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4.5rem);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            letter-spacing: -0.02em;
+        .hero-radar .sweep {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, rgba(139, 92, 246, 0.16), rgba(139, 92, 246, 0.04) 40deg, transparent 90deg);
+            animation: sweep 8s linear infinite;
         }
 
-        @media (max-width: 480px) {
-            .hero h1 {
-                font-size: 2.5rem;
-                /* Force smaller size on mobile */
-                word-break: break-word;
-                /* Ensure it wraps */
+        @keyframes sweep {
+            to {
+                transform: rotate(360deg);
             }
         }
 
-        .gradient-text {
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .hero-copy {
+            max-width: 760px;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 7vw, 64px);
+            font-weight: 600;
+            line-height: 1.1;
+            letter-spacing: 0;
+        }
+
+        .hero h1 .dim {
+            color: var(--mute);
+        }
+
+        .hero h1 code {
+            font-size: 0.82em;
+            padding: 0 10px;
+            border-radius: var(--r-md);
+            vertical-align: 0.06em;
         }
 
         .subtitle {
-            font-size: clamp(1.1rem, 2vw, 1.25rem);
-            color: var(--text-muted);
+            font-size: 18px;
             max-width: 600px;
-            margin: 0 auto 3rem;
+            margin: 24px 0 32px;
         }
 
-        /* Install Tabs */
-        .install-grid {
+        .hero-ctas {
             display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            align-items: stretch;
+            gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 1.5rem;
         }
 
-        .install-option {
-            flex: 1;
-            /* Allow it to shrink below 280px on tiny screens, but prefer 300px on desktop */
-            flex-basis: 300px;
-            min-width: 0;
+        .hero-media-layout {
             display: flex;
             flex-direction: column;
+            gap: 48px;
+            margin-top: 64px;
+        }
+
+        .install-section {
+            order: 1;
+        }
+
+        .demo-section {
+            order: 2;
+        }
+
+        .install-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
         }
 
         .install-heading {
-            text-align: center;
-            margin-bottom: 0.75rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--mute);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .install-box {
+            width: 100%;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            font-family: var(--mono);
+            font-size: 14px;
+            color: var(--ink);
+            text-align: left;
+            cursor: pointer;
+            transition: border-color .15s ease, background-color .15s ease;
+        }
+
+        .install-box:hover {
+            border-color: var(--hairline-strong);
+            background: var(--surface-elevated);
+        }
+
+        .install-box .cmd {
+            flex: 1;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .prompt {
+            color: var(--ash);
+            user-select: none;
+        }
+
+        .install-box svg {
+            flex-shrink: 0;
+            opacity: 0.5;
+        }
+
+        .install-foot {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .install-foot a {
+            color: var(--mute);
+            border-bottom: 1px solid var(--hairline-strong);
+        }
+
+        .install-foot a:hover {
+            color: var(--on-dark);
         }
 
         .desktop-only {
@@ -394,10 +575,595 @@
             display: none;
         }
 
+        /* Command-palette card (hero screenshot frame) */
+        .palette-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-xl);
+            overflow: hidden;
+        }
+
+        .palette-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 40px;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--hairline);
+            background: var(--surface-elevated);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--stone);
+        }
+
+        .palette-title {
+            flex: 1;
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--ash);
+            margin-right: 46px;
+        }
+
+        .palette-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .proof {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+            opacity: 0.85;
+        }
+
+        /* Value prop */
+        .value-prop {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: end;
+        }
+
+        .value-prop h2 {
+            font-size: clamp(32px, 4.5vw, 56px);
+            line-height: 1.17;
+        }
+
+        .value-prop p {
+            font-size: 18px;
+        }
+
+        /* Feature rows */
+        .features-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .feature-row {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 48px;
+            align-items: center;
+            padding: 24px;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+        }
+
+        .feature-num {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ash);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .feature-text h3 {
+            font-size: 24px;
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+
+        .feature-text p {
+            font-size: 16px;
+        }
+
+        .feature-visual {
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            overflow: hidden;
+            background: var(--canvas);
+        }
+
+        .feature-visual img {
+            width: 100%;
+            display: block;
+        }
+
+        .more-features {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding: 16px 24px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+        }
+
+        /* Keyboard palette */
+        .kb-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .kb-palette {
+            max-width: 520px;
+            width: 100%;
+            justify-self: end;
+        }
+
+        .kb-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 44px;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--hairline);
+            color: var(--ash);
+            font-size: 15px;
+        }
+
+        .kb-list {
+            list-style: none;
+            padding: 8px;
+        }
+
+        .kb-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 10px;
+            border-radius: var(--r-sm);
+            color: var(--on-dark);
+            font-size: 15px;
+        }
+
+        .kb-row:hover,
+        .kb-row.active {
+            background: var(--surface-card);
+        }
+
+        .kb-row .ic {
+            width: 24px;
+            height: 24px;
+            border-radius: var(--r-sm);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .kb-row .label {
+            flex: 1;
+        }
+
+        .kb-row .hint {
+            font-size: 13px;
+            color: var(--ash);
+        }
+
+        kbd {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: var(--r-xs);
+            background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
+            border: 1px solid var(--hairline);
+            color: var(--body);
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .kb-foot {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            padding: 10px 16px;
+            border-top: 1px solid var(--hairline);
+            font-size: 12px;
+            color: var(--ash);
+        }
+
+        .kb-foot span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Cards */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 24px;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            color: var(--body);
+            transition: border-color .15s ease, background-color .15s ease;
+        }
+
+        a.card:hover {
+            border-color: var(--hairline-strong);
+            background: var(--surface-elevated);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tile {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--r-md);
+            display: grid;
+            place-items: center;
+            background: var(--surface-card);
+            border: 1px solid var(--hairline);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            line-height: 1.4;
+            letter-spacing: 0.2px;
+        }
+
+        .card p {
+            font-size: 14px;
+        }
+
+        .card .more {
+            margin-top: auto;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--on-dark);
+        }
+
+        .badge {
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            line-height: 1.5;
+            padding: 2px 8px;
+            border-radius: var(--r-xs);
+            background: var(--surface-elevated);
+            color: rgba(255, 255, 255, 0.72);
+            border: 1px solid var(--hairline);
+        }
+
+        .badge-progress {
+            background: var(--blue-soft);
+            color: var(--blue);
+            border-color: transparent;
+        }
+
+        /* Mobile email form */
+        .mobile-email-form {
+            display: none;
+            margin-top: 8px;
+        }
+
+        .mobile-email-form p {
+            font-size: 14px;
+            color: var(--mute);
+            margin-bottom: 8px;
+        }
+
+        .email-form-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        .email-input {
+            flex: 1;
+            min-width: 0;
+            height: 44px;
+            padding: 8px 12px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            color: var(--on-dark);
+            font: 400 16px 'Inter', system-ui, sans-serif;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: var(--hairline-strong);
+        }
+
+        .email-form-container .btn {
+            height: 44px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: var(--section);
+            border-top: 1px solid var(--hairline);
+            padding: 64px 0 48px;
+            font-size: 14px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 32px;
+        }
+
+        .footer-brand p {
+            color: var(--mute);
+            margin-top: 12px;
+            max-width: 280px;
+        }
+
+        .footer-col h4 {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            color: var(--on-dark);
+            margin-bottom: 12px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .footer-col a {
+            color: var(--mute);
+            transition: color .15s ease;
+        }
+
+        .footer-col a:hover {
+            color: var(--on-dark);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--hairline);
+            color: var(--ash);
+            font-size: 13px;
+        }
+
+        .footer-bottom a {
+            color: var(--mute);
+        }
+
+        /* Back to top */
+        .back-to-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            background: var(--surface-elevated);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            color: var(--on-dark);
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: opacity .2s, transform .2s, visibility .2s, border-color .15s;
+            z-index: 99;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+
+        .back-to-top:hover {
+            border-color: var(--hairline-strong);
+        }
+
+        /* Mobile sticky CTA */
+        .mobile-sticky-footer {
+            display: none;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            background: rgba(7, 8, 10, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--hairline);
+        }
+
+        .mobile-footer-btn {
+            width: 100%;
+            height: 44px;
+        }
+
+        .mobile-footer-btn.pulse {
+            animation: nudge 2s ease-in-out 3;
+        }
+
+        @keyframes nudge {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+            }
+        }
+
+        /* Motion */
+        .hero-animate {
+            opacity: 0;
+            transform: translateY(12px);
+            animation: fadeInUp .6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .delay-1 {
+            animation-delay: .08s;
+        }
+
+        .delay-2 {
+            animation-delay: .16s;
+        }
+
+        .delay-3 {
+            animation-delay: .24s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity .6s cubic-bezier(0.22, 1, 0.36, 1), transform .6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal.revealed {
+            opacity: 1;
+            transform: none;
+        }
+
+        .konami-active {
+            animation: rainbow 2s linear infinite;
+        }
+
+        @keyframes rainbow {
+            to {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            .hero-radar .sweep {
+                display: none;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            .footer-brand {
+                grid-column: 1 / -1;
+            }
+        }
+
         @media (max-width: 768px) {
+            :root {
+                --section: 64px;
+            }
+
             .container {
-                padding: 0 1rem;
-                /* Reduce padding on mobile to give more space */
+                padding: 0 16px;
+            }
+
+            .nav-links,
+            .nav-sep,
+            .badge-desktop,
+            .support-text {
+                display: none;
+            }
+
+            .hamburger,
+            .mobile-nav {
+                display: flex;
+            }
+
+            .hero-radar {
+                width: 480px;
+                height: 480px;
+                top: -160px;
+                right: -220px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .hero-media-layout {
+                gap: 24px;
+                margin-top: 40px;
+            }
+
+            .install-section {
+                order: 2;
+            }
+
+            .demo-section {
+                order: 1;
+            }
+
+            .install-grid,
+            #hero-install-options {
+                display: none;
+            }
+
+            .mobile-email-form {
+                display: block;
             }
 
             .desktop-only {
@@ -408,1009 +1174,65 @@
                 display: inline;
             }
 
-            .install-grid {
-                flex-direction: column;
-                /* Explicitly stack on mobile */
-                gap: 2rem;
+            .palette-card {
+                border-radius: var(--r-lg);
             }
 
-            .install-option {
-                width: 100%;
-                /* Full width on mobile */
-                flex-basis: auto;
-            }
-        }
-
-        .install-section {
-            max-width: 800px;
-            /* Increased max-width for side-by-side */
-            margin: 0 auto;
-        }
-
-        .tabs {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-muted);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .tab-btn:hover {
-            color: var(--text-main);
-        }
-
-        .tab-btn.active {
-            background: var(--surface);
-            border-color: var(--border);
-            color: var(--text-main);
-        }
-
-        .install-box {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            border-radius: 12px;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: border-color 0.2s, transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            text-align: left;
-            position: relative;
-            display: block;
-            width: 100%;
-            font-size: 1rem;
-            line-height: 1.6;
-            min-height: 100px;
-            /* Prevent CLS */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .install-box:hover {
-            border-color: var(--primary);
-            box-shadow: 0 8px 24px var(--primary-glow);
-            transform: translateY(-2px);
-        }
-
-        .code-block {
-            display: none;
-        }
-
-        .code-block.active {
-            display: block;
-        }
-
-        .prompt {
-            color: var(--primary);
-            user-select: none;
-            margin-right: 0.5rem;
-        }
-
-        .cmd {
-            color: var(--text-main);
-            word-break: break-word;
-            /* Ensure long commands wrap on mobile */
-            text-align: left;
-        }
-
-        .comment {
-            color: #555;
-            display: block;
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-        }
-
-        .copy-hint {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .install-box:hover .copy-hint {
-            opacity: 1;
-        }
-
-        /* Demo */
-        .demo-section {
-            margin: 6rem 0;
-        }
-
-        .window-frame {
-            background: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            overflow: hidden;
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        .window-header {
-            background: #2D2D2D;
-            padding: 0.75rem 1rem;
-            display: flex;
-            gap: 8px;
-            border-bottom: 1px solid #111;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .red {
-            background: #FF5F56;
-        }
-
-        .yellow {
-            background: #FFBD2E;
-        }
-
-        .green {
-            background: #27C93F;
-        }
-
-        .demo-section img {
-            width: 100%;
-            display: block;
-        }
-
-        /* Bento Grid */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            gap: 1.5rem;
-            margin-bottom: 6rem;
-            max-width: 100%;
-        }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 2rem;
-            border-radius: 16px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            border-color: var(--primary);
-            background: var(--surface-hover);
-            transform: translateY(-4px);
-        }
-
-        /* Highlight specific cards */
-        .card.wide {
-            grid-column: span 2;
-        }
-
-        @media (max-width: 768px) {
-            .card.wide {
-                grid-column: span 1;
-            }
-        }
-
-        .card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .card-icon {
-            color: #E9D5FF;
-            background: rgba(139, 92, 246, 0.1);
-            padding: 0.5rem;
-            border-radius: 8px;
-            font-size: 1.25rem;
-            min-width: 2.5rem;
-            text-align: center;
-        }
-
-        .card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .key {
-            display: inline-block;
-            background: #2D2D2D;
-            border: 1px solid #444;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: #fff;
-            margin: 0 2px;
-        }
-
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 4rem 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .footer-links {
-            margin-bottom: 1.5rem;
-        }
-
-        .footer-links a {
-            color: var(--text-muted);
-            margin: 0 1rem;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-
-        /* Hero Media Layout & Reordering */
-        .hero-media-layout {
-            display: flex;
-            flex-direction: column;
-            gap: 3rem;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .install-section {
-            order: 1;
-            /* Default: Install first */
-        }
-
-        .demo-section {
-            order: 2;
-            /* Default: Demo second */
-            margin: 0 !important;
-            /* Reset existing margins */
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
+            .value-prop,
+            .feature-row,
+            .kb-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
             }
 
-            .hero-media-layout {
-                gap: 2rem;
-            }
-
-            .install-section {
-                order: 2;
-                /* Mobile: Install second (containing only email form) */
-            }
-
-            .demo-section {
-                order: 1;
-                /* Mobile: Demo first */
-            }
-
-            /* Hide Install Grid on Mobile */
-            .install-grid {
-                display: none;
-            }
-
-            #hero-install-options {
-                display: none;
-            }
-
-            nav {
-                padding: 1rem;
-                margin-top: 10px;
-                top: 10px;
-            }
-
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero {
-                padding: 4rem 0 2rem;
-            }
-
-            .subtitle {
-                font-size: 1rem;
-                padding: 0 1rem;
-            }
-
-            .install-box {
-                padding: 1rem;
-                margin: 0 0.5rem;
-                font-size: 0.9rem;
-            }
-
-            .tab-btn {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
-            }
-
-            .back-to-top {
-                bottom: 20px;
-                right: 20px;
-                width: 40px;
-                height: 40px;
-            }
-        }
-
-        /* Back to Top Button */
-        .back-to-top {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            width: 50px;
-            height: 50px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px);
-            z-index: 99;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .back-to-top:hover {
-            border-color: var(--primary);
-            background: var(--surface-hover);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
-        }
-
-
-        /* Blog Heading Contrast Fix */
-        .resources h3 {
-            color: #E4E4E7;
-        }
-
-        /* Hero CTA Button */
-        .hero-cta-btn {
-            display: inline-flex;
-            align-items: center;
-            background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 9999px;
-            /* Pill shape */
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .hero-cta-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.6);
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
-        }
-
-        /* Secondary Button */
-        .secondary-btn {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-muted);
-            padding: 0.8rem 1.5rem;
-            border-radius: 9999px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            border: 1px solid var(--border);
-        }
-
-        .secondary-btn:hover {
-            background: var(--surface-hover);
-            color: var(--text-main);
-            border-color: var(--text-muted);
-        }
-
-        /* Zig-Zag Features */
-        .feature-section {
-            padding: 4rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 6rem;
-        }
-
-        .feature-row {
-            display: flex;
-            align-items: center;
-            gap: 4rem;
-        }
-
-        .feature-row:nth-child(even) {
-            flex-direction: row-reverse;
-        }
-
-        .feature-visual {
-            flex: 1;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .feature-visual img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .feature-text {
-            flex: 1;
-        }
-
-        .feature-text h3 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .feature-text p {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Keyboard Cheat Sheet */
-        .kb-cheat-sheet {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 3rem;
-            padding: 2rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-        }
-
-        .kb-key-group {
-            text-align: center;
-        }
-
-        .kb-key {
-            display: block;
-            background: #2D2D2D;
-            border: 1px solid #444;
-            border-bottom: 3px solid #111;
-            border-radius: 8px;
-            width: 48px;
-            height: 48px;
-            line-height: 46px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.25rem;
-            color: #fff;
-            margin: 0 auto 0.5rem;
-            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
-            transition: transform 0.1s, box-shadow 0.1s, border-bottom 0.1s;
-        }
-
-        .kb-key:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-            border-bottom: 1px solid #111;
-        }
-
-        .kb-desc {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        @media (max-width: 768px) {
             .feature-row {
-                flex-direction: column;
-                gap: 2rem;
-                text-align: center;
+                padding: 16px;
             }
 
-            .feature-row:nth-child(even) {
-                flex-direction: column;
+            .feature-visual {
+                order: -1;
             }
 
-            .feature-text h3 {
-                font-size: 1.5rem;
+            .kb-palette {
+                justify-self: stretch;
+                max-width: none;
             }
-        }
 
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
 
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
 
-        /* Mobile Sticky Footer */
-        .mobile-sticky-footer {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(14, 14, 18, 0.95);
-            border-top: 1px solid var(--border);
-            padding: 1rem;
-            z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        .mobile-footer-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            background: #2ea44f;
-            /* GitHub Green */
-            color: white;
-            font-weight: 600;
-            padding: 0.8rem;
-            border-radius: 8px;
-            text-decoration: none;
-            gap: 0.5rem;
-            font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(46, 164, 79, 0.4);
-            transition: transform 0.2s;
-        }
-
-        .mobile-footer-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* Mobile Email Reminder */
-        .mobile-email-form {
-            display: none;
-            margin-top: 2rem;
-            text-align: center;
-        }
-
-        .email-form-container {
-            display: flex;
-            gap: 0.5rem;
-            max-width: 100%;
-        }
-
-        .email-input {
-            flex: 1;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 0.8rem;
-            border-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-        }
-
-        .email-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .email-submit-btn {
-            background: var(--surface-hover);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 0.8rem 1.2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .email-submit-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        @media (max-width: 768px) {
             .mobile-sticky-footer {
                 display: block;
-                padding-bottom: max(1rem, env(safe-area-inset-bottom));
             }
 
-            /* Add some padding to body so content isn't hidden behind footer */
             body {
-                padding-bottom: 80px;
+                padding-bottom: 72px;
             }
 
-            .mobile-email-form {
-                display: block;
-            }
-
-            /* Raise back to top button above footer */
             .back-to-top {
-                bottom: 90px;
-            }
-        }
-
-        /* Neo-Brutalist Card Enhancements */
-        .roadmap .card {
-            border: 2px solid var(--border);
-            box-shadow: 4px 4px 0px 0px var(--border);
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .roadmap .card:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 8px 8px 0px 0px var(--primary);
-            border-color: var(--primary);
-        }
-
-        /* Hero Animation */
-        .hero-animate {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .delay-1 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.3s;
-        }
-
-        /* Back to Top Pulse */
-        .back-to-top:hover svg {
-            animation: bounce 0.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes bounce {
-            from {
-                transform: translateY(0);
+                bottom: 84px;
+                right: 16px;
             }
 
-            to {
-                transform: translateY(-3px);
-            }
-        }
-
-        /* KBD Styling override */
-        kbd {
-            background-color: #2D2D2D;
-            border: 1px solid #444;
-            border-radius: 4px;
-            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 0 0 rgba(255, 255, 255, 0.1) inset;
-            color: #fff;
-            display: inline-block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85em;
-            font-weight: 700;
-            line-height: 1;
-            padding: 2px 4px;
-            white-space: nowrap;
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-
-        kbd:active,
-        .kb-key:active {
-            transform: translateY(2px);
-            box-shadow: 0 0 1px rgba(0, 0, 0, 0.2) inset;
-        }
-
-        /* ========== SCROLL REVEAL ========== */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-                transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        .reveal.revealed {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Staggered delays for children */
-        .reveal-stagger>*:nth-child(1) {
-            transition-delay: 0s;
-        }
-
-        .reveal-stagger>*:nth-child(2) {
-            transition-delay: 0.1s;
-        }
-
-        .reveal-stagger>*:nth-child(3) {
-            transition-delay: 0.2s;
-        }
-
-        /* ========== FEATURE VISUAL HOVER ========== */
-        .feature-visual {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .feature-visual:hover {
-            transform: scale(1.02);
-            box-shadow: 0 20px 50px rgba(139, 92, 246, 0.2);
-        }
-
-        /* ========== SECTION SEPARATORS ========== */
-        .section-divider {
-            border: none;
-            height: 1px;
-            background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
-            margin: 4rem auto;
-            max-width: 600px;
-        }
-
-        /* ========== ROADMAP BADGES ========== */
-        .badge {
-            display: inline-block;
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-left: 0.5rem;
-            vertical-align: middle;
-        }
-
-        .badge-planned {
-            background: rgba(139, 92, 246, 0.15);
-            color: #C4B5FD;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .badge-progress {
-            background: rgba(34, 197, 94, 0.15);
-            color: #86EFAC;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        /* ========== HAMBURGER MENU ========== */
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            padding: 8px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            z-index: 101;
-        }
-
-        .hamburger span {
-            display: block;
-            width: 24px;
-            height: 2px;
-            background: var(--text-main);
-            transition: transform 0.3s, opacity 0.3s;
-        }
-
-        .hamburger.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-
-        .hamburger.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .hamburger.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
-        }
-
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: rgba(3, 3, 5, 0.98);
-            z-index: 99;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .mobile-nav.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .mobile-nav a {
-            color: var(--text-main);
-            font-size: 1.5rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .mobile-nav a:hover {
-            color: var(--primary);
-        }
-
-        .mobile-nav-badges {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            width: 80%;
-        }
-
-        .mobile-nav-badges img {
-            height: 24px !important;
-        }
-
-        @media (max-width: 768px) {
-            .hamburger {
-                display: flex;
-            }
-
-            .mobile-nav {
-                display: flex;
-            }
-        }
-
-        /* ========== STICKY CTA PULSE ========== */
-        @keyframes pulse {
-
-            0%,
-            100% {
-                box-shadow: 0 4px 12px rgba(46, 164, 79, 0.4);
-            }
-
-            50% {
-                box-shadow: 0 4px 20px rgba(46, 164, 79, 0.7), 0 0 0 8px rgba(46, 164, 79, 0.1);
-            }
-        }
-
-        .mobile-footer-btn.pulse {
-            animation: pulse 2s ease-in-out 3;
-        }
-
-        /* ========== SKELETON LOADER ========== */
-        .skeleton-wrapper {
-            position: relative;
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .skeleton-wrapper::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            100% {
-                left: 100%;
-            }
-        }
-
-        .skeleton-wrapper img {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .skeleton-wrapper.loaded::before {
-            display: none;
-        }
-
-        .skeleton-wrapper.loaded img {
-            opacity: 1;
-        }
-
-        /* ========== FOOTER WAVE ========== */
-        .footer-wave {
-            width: 100%;
-            height: 60px;
-            margin-bottom: -1px;
-        }
-
-        .footer-wave svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* ========== TOUCH TARGETS ========== */
-        @media (max-width: 768px) {
-
-            .support-btn,
             .nav-links a,
-            .footer-links a,
-            .tab-btn,
-            .secondary-btn,
-            .hero-cta-btn {
+            .footer-col a,
+            .btn {
                 min-height: 44px;
-                min-width: 44px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
             }
-        }
-
-        /* ========== RESPONSIVE BADGES ========== */
-        .badge-mobile {
-            display: none !important;
         }
 
         @media (max-width: 480px) {
-            .badge-desktop {
-                display: none !important;
+            .footer-grid {
+                grid-template-columns: 1fr;
             }
 
-            .badge-mobile {
-                display: inline-block !important;
-            }
-        }
-
-        /* ========== KONAMI EASTER EGG ========== */
-        .konami-active {
-            animation: rainbow 2s linear infinite;
-        }
-
-        @keyframes rainbow {
-            0% {
-                filter: hue-rotate(0deg);
-            }
-
-            100% {
-                filter: hue-rotate(360deg);
+            .hero-ctas .btn {
+                flex: 1;
             }
         }
     </style>
@@ -1418,464 +1240,427 @@
 
 <body>
 
-    <div class="container">
-        <nav>
-            <a href="#" class="logo">git<span>-</span>scope</a>
-            <div class="nav-right">
+    <header class="nav-bar">
+        <div class="container">
+            <nav class="primary" aria-label="Primary">
+                <a href="#" class="logo">
+                    <span class="logo-mark" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"
+                            stroke-linecap="round">
+                            <circle cx="12" cy="12" r="9" />
+                            <circle cx="12" cy="12" r="4" />
+                            <path d="M12 12L19 5" />
+                        </svg>
+                    </span>
+                    <span class="logo-text">git<span>-</span>scope</span>
+                </a>
+
                 <div class="nav-links">
                     <a href="#features">Features</a>
+                    <a href="#shortcuts">Shortcuts</a>
+                    <a href="#roadmap">Roadmap</a>
                     <a href="#blog">Blog</a>
-                    <a href="#contact">Contact</a>
                 </div>
 
-                <!-- Sponsor Button -->
-                <a href="https://buymeacoffee.com/iam_pbk" target="_blank" class="support-btn"
-                    aria-label="Sponsor Project">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path
-                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                    </svg>
-                    <span class="support-text">Sponsor</span>
-                </a>
+                <div class="nav-right">
+                    <a href="https://github.com/Bharath-code/git-scope" target="_blank" rel="noopener"
+                        id="nav-github-link" class="badge-desktop" aria-label="GitHub stars">
+                        <img src="https://img.shields.io/github/stars/Bharath-code/git-scope?style=social"
+                            alt="GitHub Stars" width="80" height="20" class="nav-badge">
+                    </a>
+                    <a href="https://buymeacoffee.com/iam_pbk" target="_blank" rel="noopener"
+                        class="btn btn-outline support-btn" aria-label="Sponsor Project">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                        <span class="support-text">Sponsor</span>
+                    </a>
+                    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
 
-                <div class="nav-separator" style="width: 1px; height: 24px; background: rgba(255,255,255,0.1);"></div>
-                <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=7C3AED&label=Downloads"
-                    alt="Downloads" width="90" height="20" class="nav-badge badge-desktop">
-                <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=7C3AED&label=DL"
-                    alt="Downloads" width="50" height="20" class="nav-badge badge-mobile">
-                <a href="https://github.com/Bharath-code/git-scope" target="_blank" style="text-decoration: none; display: flex; align-items: center;"
-                    id="nav-github-link">
-                    <img src="https://img.shields.io/github/stars/Bharath-code/git-scope?style=social"
-                        alt="GitHub Stars" width="80" height="20" class="nav-badge">
-                </a>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+        <a href="#features" class="mobile-nav-link">Features</a>
+        <a href="#shortcuts" class="mobile-nav-link">Shortcuts</a>
+        <a href="#roadmap" class="mobile-nav-link">Roadmap</a>
+        <a href="#blog" class="mobile-nav-link">Blog</a>
+        <a href="https://github.com/Bharath-code/git-scope" target="_blank" rel="noopener"
+            class="mobile-nav-link">GitHub</a>
+    </nav>
 
-                <!-- Hamburger Menu -->
-                <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
+    <main class="container">
+        <section class="hero">
+            <div class="hero-radar" aria-hidden="true">
+                <div class="rings"></div>
+                <div class="sweep"></div>
             </div>
-        </nav>
 
-        <!-- Mobile Nav Overlay -->
-        <nav class="mobile-nav" id="mobileNav">
-            <a href="#features" class="mobile-nav-link">Features</a>
-            <a href="#blog" class="mobile-nav-link">Blog</a>
-            <a href="#contact" class="mobile-nav-link">Contact</a>
-            <div class="mobile-nav-badges">
-                <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=7C3AED&label=Downloads"
-                    alt="Downloads" width="90" height="20">
-                <a href="https://github.com/Bharath-code/git-scope" target="_blank" class="mobile-nav-link"
-                    style="font-size: 1.1rem;">GitHub</a>
-            </div>
-        </nav>
-
-        <main>
-            <section class="hero">
-                <h1 class="hero-animate">Stop <span class="gradient-text">cd-ing.</span> <br> Start Coding.</h1>
-                <p class="subtitle hero-animate delay-1">
+            <div class="hero-copy">
+                <p class="eyebrow hero-animate">A terminal dashboard for every repo on your machine</p>
+                <h1 class="hero-animate delay-1">Stop <span class="nowrap"><code>cd</code>-ing.</span><br><span class="dim">Start coding.</span>
+                </h1>
+                <p class="subtitle hero-animate delay-2">
                     Git-Scope helps busy developers instantly find, filter, and manage their entire git universe so you
-                    can stay in your
-                    flow state without endlessly <code>cd</code>-ing through nested directories.
+                    can stay in your flow state without endlessly <code>cd</code>-ing through nested directories.
                 </p>
-
-                <!-- Hero CTAs -->
-                <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem; flex-wrap: wrap;"
-                    class="hero-animate delay-2">
-                    <a href="https://github.com/Bharath-code/git-scope" target="_blank" class="hero-cta-btn"
-                        id="hero-cta-star">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="margin-right: 0.5rem;" aria-hidden="true">
+                <div class="hero-ctas hero-animate delay-3">
+                    <a href="https://github.com/Bharath-code/git-scope" target="_blank" rel="noopener"
+                        class="btn btn-primary" id="hero-cta-star">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polygon
                                 points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
                             </polygon>
                         </svg>
                         Star on GitHub
                     </a>
-                    <a href="#features" class="secondary-btn" id="hero-cta-features">
-                        How it Works
-                    </a>
+                    <a href="#features" class="btn btn-tertiary" id="hero-cta-features">How it works</a>
                 </div>
+            </div>
 
-                <!-- Hero Media Layout Wrapper -->
-                <div class="hero-media-layout">
-
-                    <!-- Simplified Install -->
-                    <div class="install-section">
-
-                        <div class="install-grid">
-                            <!-- Option 1: Homebrew -->
-                            <div class="install-option">
-                                <div class="install-heading">Homebrew</div>
-                                <div class="install-box" onclick="copyInstallCommand()"
-                                    style="padding: 1rem; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                                    <span class="prompt">$</span>
-                                    <span class="cmd" style="font-size: 0.95rem; font-weight: 600;">brew tap
-                                        Bharath-code/tap &&
-                                        brew install git-scope</span>
-                                    <svg id="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class="feather feather-copy"
-                                        style="opacity: 0.5; margin-left: auto; min-width: 16px;" aria-hidden="true">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <!-- Option 2: Script -->
-                            <div class="install-option">
-                                <div class="install-heading">Universal Installer</div>
-                                <div class="install-box" onclick="copyScriptCommand()"
-                                    style="padding: 1rem; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                                    <span class="prompt">$</span>
-                                    <span class="cmd"
-                                        style="font-size: 0.95rem; font-weight: 600; word-break: break-all;">
-                                        <span class="desktop-only">curl -sSL
-                                            https://raw.githubusercontent.com/Bharath-code/git-scope/main/scripts/install.sh
-                                            | sh</span>
-                                        <span class="mobile-only">curl -sSL .../scripts/install.sh | sh</span>
-                                    </span>
-                                    <svg id="script-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class="feather feather-copy"
-                                        style="opacity: 0.5; margin-left: auto; min-width: 16px;" aria-hidden="true">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                    <div id="script-copy-feedback"
-                                        style="font-size: 0.75rem; color: #27C93F; opacity: 0; transition: opacity 0.2s; position: absolute; bottom: 4px; right: 10px;">
-                                    </div>
-                                </div>
-                            </div>
+            <div class="hero-media-layout">
+                <div class="install-section">
+                    <div class="install-grid">
+                        <div>
+                            <div class="install-heading">Homebrew</div>
+                            <button type="button" class="install-box" onclick="copyInstallCommand()"
+                                aria-label="Copy Homebrew install command">
+                                <span class="prompt">$</span>
+                                <span class="cmd">brew tap Bharath-code/tap &amp;&amp; brew install git-scope</span>
+                                <svg id="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
                         </div>
-
-                        <!-- Mobile Email Reminder -->
-                        <div class="mobile-email-form">
-                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">
-                                Save for later? Email yourself the link.
-                            </p>
-                            <form action="https://formspree.io/f/mpwvgrvg" method="POST" class="email-form-container">
-                                <input type="email" name="email" class="email-input" placeholder="your@email.com"
-                                    required>
-                                <button type="submit" class="email-submit-btn">Send</button>
-                            </form>
-                        </div>
-
-                        <div style="margin-top: 1rem;">
-                            <a href="https://github.com/Bharath-code/git-scope/releases" target="_blank"
-                                style="color: var(--text-muted); font-size: 0.9rem; text-decoration: underline;"
-                                id="hero-install-options">View Windows & Go Install</a>
+                        <div>
+                            <div class="install-heading">Universal installer</div>
+                            <button type="button" class="install-box" onclick="copyScriptCommand()"
+                                aria-label="Copy curl install command">
+                                <span class="prompt">$</span>
+                                <span class="cmd">
+                                    <span class="desktop-only">curl -sSL
+                                        https://raw.githubusercontent.com/Bharath-code/git-scope/main/scripts/install.sh
+                                        | sh</span>
+                                    <span class="mobile-only">curl -sSL .../scripts/install.sh | sh</span>
+                                </span>
+                                <svg id="script-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Hero Demo (Moved Up) -->
-                    <section class="demo-section">
-                        <div class="window-frame">
-                            <div class="window-header">
-                                <div class="dot red"></div>
-                                <div class="dot yellow"></div>
-                                <div class="dot green"></div>
-                            </div>
-                            <picture>
-                                <source media="(max-width: 768px)" srcset="git-scope-demo-mobile-1.webp"
-                                    type="image/webp">
-                                <img src="git-scope-demo-1.webp" alt="git-scope Demo" loading="eager" width="1200"
-                                    height="800" style="width: 100%; height: auto; display: block;" decoding="async">
-                            </picture>
+                    <div class="mobile-email-form">
+                        <p>Save for later? Email yourself the link.</p>
+                        <form action="https://formspree.io/f/mpwvgrvg" method="POST" class="email-form-container">
+                            <input type="email" name="email" class="email-input" placeholder="your@email.com"
+                                aria-label="Email address" required>
+                            <button type="submit" class="btn btn-tertiary">Send</button>
+                        </form>
+                    </div>
+
+                    <p class="install-foot">
+                        <a href="https://github.com/Bharath-code/git-scope/releases" target="_blank" rel="noopener"
+                            id="hero-install-options">View Windows &amp; Go install</a>
+                    </p>
+                </div>
+
+                <section class="demo-section" aria-label="Product demo">
+                    <div class="palette-card">
+                        <div class="palette-head" aria-hidden="true">
+                            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                            <span class="palette-title">~/code — git-scope</span>
                         </div>
-                    </section>
+                        <picture>
+                            <source media="(max-width: 768px)" srcset="git-scope-demo-mobile-1.webp"
+                                type="image/webp">
+                            <img src="git-scope-demo-1.webp"
+                                alt="git-scope dashboard listing repositories with branch, status and last commit"
+                                loading="eager" width="1200" height="800" decoding="async">
+                        </picture>
+                    </div>
+                    <div class="proof">
+                        <img src="https://img.shields.io/github/v/release/Bharath-code/git-scope?style=flat-square&color=242728&label=release"
+                            alt="Latest Version" width="110" height="20">
+                        <img src="https://img.shields.io/github/downloads/Bharath-code/git-scope/total?style=flat-square&color=242728&label=downloads"
+                            alt="Downloads" width="110" height="20">
+                        <img src="https://img.shields.io/github/license/Bharath-code/git-scope?style=flat-square&color=242728"
+                            alt="License" width="80" height="20">
+                    </div>
+                </section>
+            </div>
+        </section>
 
-                </div>
-                <!-- End Hero Media Layout -->
+        <section class="section value-prop reveal">
+            <div>
+                <p class="eyebrow">Why git-scope</p>
+                <h2>Stop manually <span class="nowrap"><code>cd</code>-ing</span> everywhere.</h2>
+            </div>
+            <p>Do you have 50+ git repos scattered across <code>~/code</code>, <code>~/projects</code>, and
+                <code>~/work</code>? Finding that one side-project from 3 months ago shouldn't take 5 minutes.
+            </p>
+        </section>
 
-                <!-- Social Proof Badges -->
-                <div
-                    style="margin-bottom: 2rem; margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; opacity: 0.8;">
-                    <img src="https://img.shields.io/github/v/release/Bharath-code/git-scope?style=flat-square&color=8B5CF6&label=Latest%20Version"
-                        alt="Latest Version" width="130" height="20">
-                    <img src="https://img.shields.io/github/last-commit/Bharath-code/git-scope?style=flat-square&color=27272A"
-                        alt="Last Commit" width="140" height="20">
-                    <img src="https://img.shields.io/github/license/Bharath-code/git-scope?style=flat-square&color=27272A"
-                        alt="License" width="80" height="20">
-                </div>
+        <section class="section" id="features">
+            <div class="section-head reveal">
+                <p class="eyebrow">Features</p>
+                <h2>Your whole workspace, one screen.</h2>
+            </div>
 
-            </section>
-
-
-
-            <section class="value-prop" style="margin-bottom: 6rem; text-align: center;">
-                <p
-                    style="color: var(--primary); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.9rem;">
-                    Why Git-Scope?</p>
-                <h2 style="font-size: clamp(2rem, 4vw, 2.5rem); margin-bottom: 2rem; font-weight: 700;">Stop Manually
-                    <code style="font-size: 0.8em; color: var(--primary);">cd</code>-ing Everywhere
-                </h2>
-                <div
-                    style="max-width: 700px; margin: 0 auto; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6;">
-                    <p>Do you have 50+ git repos scattered across `~/code`, `~/projects`, and `~/work`? Finding that one
-                        side-project from 3 months ago shouldn't take 5 minutes.</p>
-                </div>
-            </section>
-
-            <!-- Features Zig-Zag -->
-            <hr class="section-divider">
-            <div class="features-section" id="features">
-
-                <!-- Feature 1 -->
+            <div class="features-section">
                 <div class="feature-row reveal">
+                    <div class="feature-text">
+                        <span class="feature-num">01</span>
+                        <h3>Fuzzy search</h3>
+                        <p>Lost a repo? Press <kbd>/</kbd> to search by name in real-time. Git-Scope indexes your
+                            entire workspace in milliseconds, so you can jump to any project instantly.</p>
+                    </div>
                     <div class="feature-visual">
                         <picture>
                             <source media="(max-width: 768px)" srcset="images/feature-search-mobile.jpg"
                                 type="image/jpeg">
                             <source srcset="images/feature-search-desktop.webp" type="image/webp">
-                            <img src="images/feature-search.png" alt="Fuzzy Search" loading="lazy" width="662"
-                                height="398">
+                            <img src="images/feature-search.png" alt="Fuzzy search filtering repositories by name"
+                                loading="lazy" width="662" height="398">
                         </picture>
-                    </div>
-                    <div class="feature-text">
-                        <h3><span style="color: var(--primary);">01.</span> Fuzzy Search</h3>
-                        <p>Lost a repo? Press <code>/</code> to search by name in real-time. Git-Scope indexes your
-                            entire workspace in milliseconds, so you can jump to any project instantly.</p>
                     </div>
                 </div>
 
-                <!-- Feature 2 -->
                 <div class="feature-row reveal">
+                    <div class="feature-text">
+                        <span class="feature-num">02</span>
+                        <h3>Dirty radar</h3>
+                        <p>Press <kbd>f</kbd> to filter by status. Instantly see which repos have uncommitted changes
+                            or unpushed commits. Never leave code behind again.</p>
+                    </div>
                     <div class="feature-visual">
                         <picture>
                             <source media="(max-width: 768px)" srcset="images/feature-radar-mobile.jpg"
                                 type="image/jpeg">
                             <source srcset="images/feature-radar-desktop.webp" type="image/webp">
-                            <img src="images/feature-radar.png" alt="Dirty Radar" loading="lazy" width="662"
-                                height="398">
+                            <img src="images/feature-radar.png" alt="Status filter showing only dirty repositories"
+                                loading="lazy" width="662" height="398">
                         </picture>
-                    </div>
-                    <div class="feature-text">
-                        <h3><span style="color: var(--primary);">02.</span> Dirty Radar</h3>
-                        <p>Press <code>f</code> to filter by status. Instantly see which repos have uncommitted changes
-                            or unpushed commits. Never leave code behind again.</p>
                     </div>
                 </div>
 
-                <!-- Feature 3 -->
                 <div class="feature-row reveal">
+                    <div class="feature-text">
+                        <span class="feature-num">03</span>
+                        <h3>Stats &amp; visuals</h3>
+                        <p>Spot disk-hogging <code>node_modules</code> and visualize your coding activity. Press
+                            <kbd>d</kbd> for disk usage and <kbd>g</kbd> for your contribution heat map.
+                        </p>
+                    </div>
                     <div class="feature-visual">
                         <picture>
                             <source media="(max-width: 768px)" srcset="images/feature-stats-mobile.jpg"
                                 type="image/jpeg">
                             <source srcset="images/feature-stats-desktop.webp" type="image/webp">
-                            <img src="images/feature-stats.png" alt="Stats & Disk Usage" loading="lazy" width="662"
-                                height="398">
+                            <img src="images/feature-stats.png" alt="Disk usage and contribution heat map"
+                                loading="lazy" width="662" height="398">
                         </picture>
                     </div>
-                    <div class="feature-text">
-                        <h3><span style="color: var(--primary);">03.</span> Stats & Visuals</h3>
-                        <p>Spot disk-hogging <code>node_modules</code> and visualize your coding activity. Press
-                            <code>d</code> for disk usage and <code>g</code> for your contribution heat map.
-                        </p>
-                    </div>
                 </div>
-
             </div>
 
-            <!-- More Features Link -->
-            <div style="text-align: center; margin-top: 4rem; margin-bottom: 6rem;">
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1.1rem;">
-                    ...plus Disk Usage,Timeline,Sorting, and more.
-                </p>
-                <a href="https://github.com/Bharath-code/git-scope#features" target="_blank" class="secondary-btn"
-                    id="features-view-all">
-                    View full feature list on GitHub &rarr;
+            <div class="more-features reveal">
+                <span>…plus disk usage, timeline, sorting, and more.</span>
+                <a href="https://github.com/Bharath-code/git-scope#features" target="_blank" rel="noopener"
+                    class="btn btn-secondary" id="features-view-all">View full feature list →</a>
+            </div>
+        </section>
+
+        <section class="section kb-layout" id="shortcuts">
+            <div class="section-head reveal" style="margin-bottom: 0;">
+                <p class="eyebrow">Keyboard first</p>
+                <h2>Vim-style efficiency.</h2>
+                <p>Every action is one keystroke away. Your hands never leave the home row.</p>
+            </div>
+
+            <div class="palette-card kb-palette reveal">
+                <div class="kb-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    Search shortcuts…
+                </div>
+                <ul class="kb-list">
+                    <li class="kb-row active"><span class="ic" style="background:var(--blue-soft);color:var(--blue)">↕</span><span class="label">Move down / up</span><kbd>j</kbd><kbd>k</kbd></li>
+                    <li class="kb-row"><span class="ic" style="background:var(--yellow-soft);color:var(--yellow)">⌕</span><span class="label">Search</span><kbd>/</kbd></li>
+                    <li class="kb-row"><span class="ic" style="background:var(--red-soft);color:var(--red)">●</span><span class="label">Filter dirty repos</span><kbd>f</kbd></li>
+                    <li class="kb-row"><span class="ic" style="background:var(--green-soft);color:var(--green)">⇅</span><span class="label">Sort</span><kbd>s</kbd></li>
+                    <li class="kb-row"><span class="ic" style="background:var(--surface-card);color:var(--body)">⌂</span><span class="label">Switch workspace</span><kbd>w</kbd></li>
+                    <li class="kb-row"><span class="ic" style="background:var(--green-soft);color:var(--green)">▦</span><span class="label">Contribution graph</span><kbd>g</kbd></li>
+                    <li class="kb-row"><span class="ic" style="background:var(--surface-card);color:var(--body)">✕</span><span class="label">Clear filters</span><kbd>c</kbd></li>
+                    <li class="kb-row"><span class="ic" style="background:var(--blue-soft);color:var(--blue)">↗</span><span class="label">Open in editor</span><kbd>Enter</kbd></li>
+                </ul>
+                <div class="kb-foot">
+                    <span>Quit <kbd>q</kbd></span>
+                    <span>Open <kbd>↵</kbd></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="roadmap">
+            <div class="section-head reveal">
+                <p class="eyebrow">Coming soon</p>
+                <h2>Roadmap</h2>
+            </div>
+
+            <div class="grid-3 reveal reveal-stagger">
+                <div class="card">
+                    <div class="card-top">
+                        <span class="tile" style="color:var(--blue)" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </span>
+                        <span class="badge">Planned</span>
+                    </div>
+                    <h3>Background watcher</h3>
+                    <p>Daemon mode to watch filesystem changes in real-time without manual rescans.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top">
+                        <span class="tile" style="color:var(--yellow)" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </span>
+                        <span class="badge badge-progress">In progress</span>
+                    </div>
+                    <h3>Quick actions</h3>
+                    <p>Pull, push, and sync repositories directly from the dashboard.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top">
+                        <span class="tile" style="color:var(--green)" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </span>
+                        <span class="badge">Planned</span>
+                    </div>
+                    <h3>Team dashboards</h3>
+                    <p>Shared configuration and status views for engineering teams.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section resources" id="blog">
+            <div class="section-head reveal">
+                <p class="eyebrow">From the blog</p>
+                <h2>Resources &amp; guides</h2>
+            </div>
+
+            <div class="grid-3 reveal reveal-stagger">
+                <a href="https://dev.to/iam_pbk/how-to-tame-your-multi-repo-chaos-with-the-terminal-52bi"
+                    target="_blank" rel="noopener" class="card">
+                    <span class="tile" style="color:var(--red)" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M6 9v6M9 6h3a3 3 0 0 1 3 3v0"/></svg>
+                    </span>
+                    <h3>Taming multi-repo chaos</h3>
+                    <p>Why manually checking 50+ repositories is killing your productivity, and how to fix it.</p>
+                    <span class="more">Read on dev.to →</span>
+                </a>
+                <a href="https://dev.to/iam_pbk/git-scope-user-guide-2dfj" target="_blank" rel="noopener"
+                    class="card">
+                    <span class="tile" style="color:var(--blue)" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+                    </span>
+                    <h3>User guide</h3>
+                    <p>The official manual: installation, shortcuts, configuration, and advanced workflows.</p>
+                    <span class="more">Read on dev.to →</span>
+                </a>
+                <a href="https://dev.to/iam_pbk/why-i-chose-goatcounter-for-my-github-pages-site-7k8"
+                    target="_blank" rel="noopener" class="card">
+                    <span class="tile" style="color:var(--green)" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                    </span>
+                    <h3>Why GoatCounter?</h3>
+                    <p>A deep dive into why we chose privacy-first analytics over Google and Cloudflare.</p>
+                    <span class="more">Read on dev.to →</span>
                 </a>
             </div>
+        </section>
+    </main>
 
-            <!-- Keyboard Cheat Sheet -->
-            <section style="margin: 6rem 0; text-align: center;">
-                <h2 style="font-size: 2rem; margin-bottom: 2rem;">Vim-Style Efficiency</h2>
-                <div class="kb-cheat-sheet">
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">j</kbd>
-                        <span class="kb-desc">Down</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">k</kbd>
-                        <span class="kb-desc">Up</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">/</kbd>
-                        <span class="kb-desc">Search</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">f</kbd>
-                        <span class="kb-desc">Filter</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">s</kbd>
-                        <span class="kb-desc">Sort</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">c</kbd>
-                        <span class="kb-desc">Clear</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">w</kbd>
-                        <span class="kb-desc">Workspace</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">g</kbd>
-                        <span class="kb-desc">graph</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key">q</kbd>
-                        <span class="kb-desc">Quit</span>
-                    </div>
-                    <div class="kb-key-group">
-                        <kbd class="kb-key" style="width: auto; padding: 0 1rem;">Enter</kbd>
-                        <span class="kb-desc">Open</span>
-                    </div>
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo"><span class="logo-text">git<span>-</span>scope</span></a>
+                    <p>A fast, read-only terminal dashboard for every git repo on your machine.</p>
                 </div>
-            </section>
-
-            <hr class="section-divider">
-
-            <section class="roadmap reveal" style="margin-bottom: 6rem; text-align: center;">
-                <p
-                    style="color: var(--primary); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.9rem;">
-                    Coming Soon</p>
-                <h2 style="font-size: clamp(2rem, 3vw, 2.5rem); margin-bottom: 3rem; font-weight: 700;">Roadmap</h2>
-
-                <div class="features reveal-stagger" style="max-width: 900px; text-align: left;">
-                    <div class="card">
-                        <h3><span class="card-icon">👁️</span> Background Watcher <span
-                                class="badge badge-planned">Planned</span></h3>
-                        <p>Daemon mode to watch filesystem changes in real-time without manual rescans.</p>
-                    </div>
-                    <div class="card">
-                        <h3><span class="card-icon">🚀</span> Quick Actions <span class="badge badge-progress">In
-                                Progress</span></h3>
-                        <p>Pull, push, and sync repositories directly from the dashboard.</p>
-                    </div>
-                    <div class="card">
-                        <h3><span class="card-icon">👥</span> Team Dashboards <span
-                                class="badge badge-planned">Planned</span></h3>
-                        <p>Shared configuration and status views for engineering teams.</p>
-                    </div>
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#shortcuts">Shortcuts</a></li>
+                        <li><a href="https://github.com/Bharath-code/git-scope/releases" target="_blank" rel="noopener">Releases</a></li>
+                        <li><a href="https://github.com/Bharath-code/git-scope/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
+                    </ul>
                 </div>
-            </section>
-
-            <hr class="section-divider">
-
-            <section class="resources reveal" id="blog" style="margin-bottom: 6rem; text-align: center;">
-                <p
-                    style="color: var(--primary); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.9rem;">
-                    From the Blog</p>
-                <h2 style="font-size: clamp(2rem, 3vw, 2.5rem); margin-bottom: 3rem; font-weight: 700;">Resources &
-                    Guides</h2>
-
-                <div class="features reveal-stagger" style="max-width: 900px; text-align: left;">
-                    <a href="https://dev.to/iam_pbk/how-to-tame-your-multi-repo-chaos-with-the-terminal-52bi"
-                        target="_blank" class="card" style="text-decoration: none; display: block; height: 100%;">
-                        <h3><span class="card-icon">🤯</span> Taming Multi-Repo Chaos</h3>
-                        <p>Why manually checking 50+ repositories is killing your productivity, and how to fix it.</p>
-                    </a>
-                    <a href="https://dev.to/iam_pbk/git-scope-user-guide-2dfj" target="_blank" class="card"
-                        style="text-decoration: none; display: block; height: 100%;">
-                        <h3><span class="card-icon">📘</span> User Guide</h3>
-                        <p>The official manual: Installation, shortcuts, configuration, and advanced workflows.</p>
-                    </a>
-                    <a href="https://dev.to/iam_pbk/why-i-chose-goatcounter-for-my-github-pages-site-7k8"
-                        target="_blank" class="card" style="text-decoration: none; display: block; height: 100%;">
-                        <h3><span class="card-icon">📊</span> Why GoatCounter?</h3>
-                        <p>A deep dive into why we chose privacy-first analytics over Google and Cloudflare.</p>
-                    </a>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://dev.to/iam_pbk/git-scope-user-guide-2dfj" target="_blank" rel="noopener">User guide</a></li>
+                        <li><a href="#blog">Blog</a></li>
+                        <li><a href="#roadmap">Roadmap</a></li>
+                    </ul>
                 </div>
-            </section>
-        </main>
-
-        <!-- Footer Wave Separator -->
-        <div class="footer-wave">
-            <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                <path
-                    d="M0 60L60 55C120 50 240 40 360 35C480 30 600 30 720 35C840 40 960 50 1080 52.5C1200 55 1320 50 1380 47.5L1440 45V60H1380C1320 60 1200 60 1080 60C960 60 840 60 720 60C600 60 480 60 360 60C240 60 120 60 60 60H0Z"
-                    fill="#0E0E12" />
-            </svg>
+                <div class="footer-col">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="https://github.com/Bharath-code/" target="_blank" rel="noopener" aria-label="GitHub Repository">GitHub</a></li>
+                        <li><a href="https://x.com/iam_pbk" target="_blank" rel="noopener" aria-label="Twitter Profile">X / Twitter</a></li>
+                        <li><a href="mailto:kumarbharath@icloud.com" aria-label="Email Contact">Email</a></li>
+                        <li><a href="https://buymeacoffee.com/iam_pbk" target="_blank" rel="noopener">Sponsor</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Git-Scope. Released under the <a
+                        href="https://github.com/Bharath-code/git-scope/blob/main/LICENSE">MIT License</a>.</p>
+                <p>Designed by <a href="https://github.com/Bharath-code">Bharathkumar</a></p>
+            </div>
         </div>
+    </footer>
 
-        <footer id="contact">
-            <div class="footer-links">
-                <a href="https://github.com/Bharath-code/" aria-label="GitHub Repository" target="_blank">
-                    <svg height="32" width="32" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                        <path
-                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-                    </svg>
-                </a>
-                <a href="https://x.com/iam_pbk" aria-label="Twitter Profile" target="_blank">
-                    <svg height="32" width="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path
-                            d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                    </svg>
-                </a>
-                <a href="mailto:kumarbharath@icloud.com" aria-label="Email Contact">
-                    <svg height="32" width="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path
-                            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                    </svg>
-                </a>
-            </div>
-            <p>&copy; 2025 Git-Scope. Released under the <a
-                    href="https://github.com/Bharath-code/git-scope/blob/main/LICENSE"
-                    style="color: var(--text-muted); text-decoration: underline;">MIT License</a>.</p>
-            <p style="font-size: 0.8rem; margin-top: 0.5rem;">Designed by <a href="https://github.com/Bharath-code"
-                    style="color: inherit; text-decoration: none;">Bharathkumar</a></p>
-        </footer>
+    <button id="backToTop" class="back-to-top" aria-label="Back to top">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 15l-6-6-6 6" />
+        </svg>
+    </button>
 
-        <!-- Back to Top Button -->
-        <button id="backToTop" class="back-to-top" aria-label="Back to Top">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M18 15l-6-6-6 6" />
-            </svg>
-        </button>
-    </div>
-
-    <script>
-        // Back to Top functionality
-        const backToTopBtn = document.getElementById('backToTop');
-
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                backToTopBtn.classList.add('visible');
-            } else {
-                backToTopBtn.classList.remove('visible');
-            }
-        });
-
-        backToTopBtn.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-    </script>
-
-    <script src="main.js" defer></script>
-
-    <!-- Mobile Sticky Footer -->
     <div class="mobile-sticky-footer">
-        <a href="https://github.com/Bharath-code/git-scope" target="_blank" class="mobile-footer-btn">
-            <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+        <a href="https://github.com/Bharath-code/git-scope" target="_blank" rel="noopener"
+            class="btn btn-primary mobile-footer-btn">
+            <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <path
                     d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
             </svg>
-            Star on GitHub to try on Desktop
+            Star on GitHub to try on desktop
         </a>
     </div>
 
-
-
+    <script>
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => backToTopBtn.classList.toggle('visible', window.scrollY > 300), { passive: true });
+        backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    </script>
+    <script src="main.js" defer></script>
 </body>
 
 </html>
