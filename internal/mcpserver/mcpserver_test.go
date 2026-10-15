@@ -27,7 +27,8 @@ func TestTools(t *testing.T) {
 	}
 	link := filepath.Join(t.TempDir(), "link")
 	if err := os.Symlink(filepath.Join(root, "dirty"), link); err != nil {
-		t.Fatal(err)
+		// Windows needs developer mode / admin for symlinks; test the plain path.
+		link = filepath.Join(root, "dirty")
 	}
 
 	ctx := context.Background()

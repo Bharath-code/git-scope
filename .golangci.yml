@@ -1,0 +1,38 @@
+version: "2"
+
+linters:
+  # standard = errcheck, govet, ineffassign, staticcheck, unused
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint # wrapped errors compared with == / type switches
+    - gosec # git-scope runs git in repos it did not create
+    - misspell
+    - nolintlint # every //nolint must name a linter and say why
+    - revive
+    - unconvert
+  settings:
+    gosec:
+      excludes:
+        # Running git/editors with repo paths and user-chosen editors is the
+        # product; Command() in internal/gitstatus neutralises unsafe config.
+        - G204
+        # Reading the config/state file the user points us at is intended.
+        - G304
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    revive:
+      rules:
+        - name: exported
+          disabled: true # internal packages; doc comments are encouraged, not enforced
+  exclusions:
+    presets:
+      - std-error-handling
+    rules:
+      - path: _test\.go
+        linters: [gosec, errcheck]
+
+formatters:
+  enable:
+    - gofmt

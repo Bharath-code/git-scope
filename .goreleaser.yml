@@ -3,10 +3,6 @@
 
 project_name: git-scope
 
-before:
-  hooks:
-    - go mod tidy
-
 builds:
   - id: git-scope
     main: ./cmd/git-scope
@@ -28,10 +24,14 @@ archives:
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
 checksum:
   name_template: 'checksums.txt'
+
+# SPDX SBOM per archive (needs syft on PATH; the release workflow installs it)
+sboms:
+  - artifacts: archive
 
 changelog:
   sort: asc
@@ -40,16 +40,22 @@ changelog:
       - '^docs:'
       - '^test:'
 
-brews:
+# Casks replace the deprecated `brews` formula. One-time tap migration, done in
+# Bharath-code/homebrew-tap after the first cask release: add
+# tap_migrations.json with {"git-scope": "git-scope"} and delete Formula/git-scope.rb.
+homebrew_casks:
   - name: git-scope
     repository:
       owner: Bharath-code
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: "https://github.com/Bharath-code/git-scope"
-    description: "A fast TUI to see the status of all git repositories"
+    description: "Repo-state layer for AI coding agents: see uncommitted and unpushed work across every git repo"
     license: "MIT"
-    install: |
-      bin.install "git-scope"
-    test: |
-      system "#{bin}/git-scope", "help"
+    # Binaries are not notarized; drop the quarantine flag so macOS will run them.
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/git-scope"]
+          end
