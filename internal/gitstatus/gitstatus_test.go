@@ -193,3 +193,54 @@ func TestStatus_IgnoresRepoFsmonitor(t *testing.T) {
 		t.Fatal("core.fsmonitor from repo config was executed")
 	}
 }
+
+func TestApplyFileLine_ConflictCountsAsUnstaged(t *testing.T) {
+	var st model.RepoStatus
+	applyFileLine(&st, "u UU N... 100644 100644 100644 100644 aa bb cc f.go")
+	if st.Unstaged != 1 {
+		t.Errorf("Unstaged = %d, want 1 for a conflicted file", st.Unstaged)
+	}
+}
+
+// Work with no upstream (a never-pushed agent branch, a detached HEAD) has no
+// `branch.ab` line, so it must be counted against the remotes directly.
+func TestStatus_UnpublishedWork(t *testing.T) {
+	origin := initRepoWithCommit(t)
+	clone := t.TempDir()
+	gitRun(t, clone, "clone", "-q", origin, ".")
+
+	commit := func(name string) {
+		if err := os.WriteFile(filepath.Join(clone, name), []byte(name), 0644); err != nil {
+			t.Fatal(err)
+		}
+		gitRun(t, clone, "add", name)
+		gitRun(t, clone, "commit", "-qm", name)
+	}
+
+	tests := []struct {
+		name  string
+		setup func()
+		ahead int
+	}{
+		{"tracked and in sync", func() {}, 0},
+		{"new branch, never pushed", func() { gitRun(t, clone, "checkout", "-qb", "agent/x"); commit("a"); commit("b") }, 2},
+		{"detached head", func() { gitRun(t, clone, "checkout", "-q", "--detach"); commit("c") }, 3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			st, err := Status(clone)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if st.Ahead != tt.ahead {
+				t.Errorf("Ahead = %d, want %d", st.Ahead, tt.ahead)
+			}
+		})
+	}
+
+	// A repo with no remote has nowhere to push: never report unpushed.
+	if st, _ := Status(origin); st.Ahead != 0 {
+		t.Errorf("no-remote repo Ahead = %d, want 0", st.Ahead)
+	}
+}

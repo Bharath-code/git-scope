@@ -74,8 +74,8 @@ func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 					return filepath.SkipDir
 				}
 
-				// Found a .git directory
-				if d.IsDir() && d.Name() == ".git" {
+				// Found a .git directory, or a .git file (linked worktree, submodule)
+				if d.Name() == ".git" && (d.IsDir() || d.Type().IsRegular()) {
 					repoPath := filepath.Dir(path)
 
 					// Resolve to absolute path to get proper repo name
@@ -101,7 +101,11 @@ func ScanRoots(roots, ignore []string) ([]model.Repo, error) {
 					repos = append(repos, repo)
 					mu.Unlock()
 
-					// Don't walk into .git directory
+					// Don't walk into .git directory. For a .git file SkipDir
+					// would skip the rest of the repo, hiding nested repos.
+					if !d.IsDir() {
+						return nil
+					}
 					return filepath.SkipDir
 				}
 

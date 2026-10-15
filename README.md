@@ -75,12 +75,50 @@ git-scope
 git-scope              # Launch TUI dashboard
 git-scope init         # Create config file interactively
 git-scope scan         # Scan and print repos (JSON)
+git-scope status --json # Repo state sorted by attention (JSON)
+git-scope mcp          # Read-only MCP server on stdio for AI agents
 git-scope scan-all     # Full system scan from home directory
 git-scope issue        # Open GitHub issues page in browser
 git-scope -h           # Show help
 ```
 
 *By default, it recursively scans the current directory. You can configure permanent root paths later.*
+
+-----
+
+## 🤖 Use with Claude Code / Cursor
+
+Running several coding agents across repos and worktrees? `git-scope mcp` lets an agent see every repo's state — uncommitted files, unpushed commits, ahead/behind — before it starts or ends a task. It is read-only, local-only (no network calls, no telemetry) and scans the roots from your config.
+
+| Tool | Returns |
+|------|---------|
+| `list_repos` | Every repo, most urgent first |
+| `needs_attention` | Only `ACTION` / `WATCH` repos (unpushed, behind, or uncommitted) |
+| `repo_status(path)` | One repo under your configured roots |
+
+**Claude Code:**
+```bash
+claude mcp add git-scope -- git-scope mcp
+```
+
+**Cursor** (`~/.cursor/mcp.json`), or any client using the `mcpServers` format:
+```json
+{
+  "mcpServers": {
+    "git-scope": {
+      "command": "git-scope",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Append directories to scan specific roots instead of your config: `"args": ["mcp", "~/code", "~/work"]`.
+
+Same data for scripts:
+```bash
+git-scope status --json | jq '.[] | select(.tier != "CLEAN") | {path, reason}'
+```
 
 -----
 

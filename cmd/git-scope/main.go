@@ -2,16 +2,20 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Bharath-code/git-scope/internal/browser"
 	"github.com/Bharath-code/git-scope/internal/config"
+	"github.com/Bharath-code/git-scope/internal/mcpserver"
 	"github.com/Bharath-code/git-scope/internal/nudge"
+	"github.com/Bharath-code/git-scope/internal/report"
 	"github.com/Bharath-code/git-scope/internal/scan"
 	"github.com/Bharath-code/git-scope/internal/tui"
 )
@@ -34,6 +38,8 @@ Usage:
 Commands:
   (default)   Launch TUI dashboard
   scan        Scan and print repos (JSON)
+  status      Print repo state sorted by attention (--json)
+  mcp         Run a read-only MCP server on stdio for AI agents
   scan-all    Full system scan from home directory (with stats)
   init        Create config file interactively
   issue       Open git-scope GitHub issues page in browser
@@ -44,6 +50,7 @@ Examples:
   git-scope ~/code ~/work      # Scan specific directories
   git-scope scan .             # Scan current directory (JSON)
   git-scope scan-all           # Find ALL repos on your system
+  git-scope status --json      # Attention-sorted repo state for scripts/agents
   git-scope init               # Setup config interactively
   git-scope issue              # Open GitHub issues page
 
@@ -115,7 +122,7 @@ func parseCommand(args []string) (cmd string, dirs []string) {
 	}
 
 	switch args[0] {
-	case "scan", "tui", "help", "init", "scan-all", "issue":
+	case "scan", "status", "mcp", "tui", "help", "init", "scan-all", "issue":
 		return args[0], args[1:]
 	default:
 		return "tui", args // assume it's a directory
@@ -135,6 +142,11 @@ func run(cmd string, dirs []string, configPath string) error {
 	case "scan-all":
 		runScanAll()
 		return nil
+	}
+
+	// --json is the only output format; accept it so the command reads naturally
+	if cmd == "status" {
+		dirs = without(dirs, "--json")
 	}
 
 	// Only commands below need config
@@ -160,6 +172,22 @@ func run(cmd string, dirs []string, configPath string) error {
 		}
 		return nil
 
+	case "status":
+		repos, err := scan.ScanRoots(cfg.Roots, cfg.Ignore)
+		if err != nil {
+			return fmt.Errorf("scan error: %w", err)
+		}
+		if err := report.PrintJSON(os.Stdout, report.Build(repos, time.Now())); err != nil {
+			return fmt.Errorf("print error: %w", err)
+		}
+		return nil
+
+	case "mcp":
+		if err := mcpserver.Run(context.Background(), cfg.Roots, cfg.Ignore, version); err != nil {
+			return fmt.Errorf("mcp error: %w", err)
+		}
+		return nil
+
 	case "tui", "":
 		if err := tui.Run(cfg); err != nil {
 			return fmt.Errorf("tui error: %w", err)
@@ -170,6 +198,17 @@ func run(cmd string, dirs []string, configPath string) error {
 		usage()
 		return fmt.Errorf("unknown command: %s", cmd)
 	}
+}
+
+// without returns args minus every occurrence of flag.
+func without(args []string, flag string) []string {
+	out := args[:0:0]
+	for _, a := range args {
+		if a != flag {
+			out = append(out, a)
+		}
+	}
+	return out
 }
 
 // expandDirs converts relative paths and ~ to absolute paths
