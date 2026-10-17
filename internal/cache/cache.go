@@ -71,7 +71,7 @@ func (s *FileStore) Save(repos []model.Repo, roots []string) error {
 
 	// Ensure cache directory exists
 	dir := filepath.Dir(s.path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}
 
@@ -80,7 +80,7 @@ func (s *FileStore) Save(repos []model.Repo, roots []string) error {
 		return err
 	}
 
-	return os.WriteFile(s.path, data, 0644)
+	return os.WriteFile(s.path, data, 0o600)
 }
 
 // IsValid checks if cache is still valid based on max age

@@ -149,3 +149,26 @@ func TestScanRoots_NonexistentRootIsSkipped(t *testing.T) {
 		t.Errorf("expected no repos for missing root, got %d", len(repos))
 	}
 }
+
+// Linked worktrees have a .git file, not a directory. Agents create them
+// constantly, so they must be scanned like any other repo.
+func TestScanRoots_FindsLinkedWorktree(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+	root := t.TempDir()
+	makeRepo(t, root, "main")
+	gitRun(t, filepath.Join(root, "main"), "worktree", "add", "-q", "-b", "agent", filepath.Join(root, "wt"))
+
+	repos, err := ScanRoots([]string{root}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := map[string]string{}
+	for _, r := range repos {
+		found[r.Name] = r.Status.Branch
+	}
+	if found["wt"] != "agent" || found["main"] != "main" {
+		t.Errorf("repos = %v, want main@main and wt@agent", found)
+	}
+}

@@ -8,14 +8,20 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    name: Test & Lint
+  checks:
+    name: Format, tidy, vet, vulncheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
           cache: true
@@ -29,32 +35,56 @@ jobs:
             exit 1
           fi
 
+      - name: Verify go.mod / go.sum are tidy
+        run: go mod tidy -diff
+
       - name: Vet
         run: go vet ./...
 
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Release ships binaries for all three; path and git handling differ per OS.
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
       - name: Test (race + coverage)
+        shell: bash
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Coverage summary
+        shell: bash
         run: go tool cover -func=coverage.out | tail -n 1
-
-      - name: govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
   lint:
     name: golangci-lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
           cache: true
 
       - name: golangci-lint
-        # v9 supports golangci-lint v2 (correct /v2 module path for goinstall).
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           # Pinned for reproducible runs — bump deliberately, not on every push.
           version: v2.12.2
