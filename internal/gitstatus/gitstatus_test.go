@@ -195,6 +195,48 @@ func TestStatus_IgnoresRepoFsmonitor(t *testing.T) {
 	}
 }
 
+// log.showSignature makes `git log` and `git stash list` verify signatures by
+// running gpg.program, which a repo's own config can point anywhere.
+func TestStatus_IgnoresRepoGpgProgram(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses a shell script hook")
+	}
+	dir := initRepoWithCommit(t)
+	marker := filepath.Join(t.TempDir(), "executed")
+	hook := filepath.Join(t.TempDir(), "gpg.sh")
+	if err := os.WriteFile(hook, []byte("#!/bin/sh\ntouch "+marker+"\n"), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign HEAD and a stash with a fake signature; the content never needs to verify.
+	sign := func(ref string) string {
+		obj := gitOutput(t, dir, "cat-file", "commit", ref)
+		head, body, _ := strings.Cut(obj, "\n\n")
+		signed := head + "\ngpgsig -----BEGIN PGP SIGNATURE-----\n x\n -----END PGP SIGNATURE-----\n\n" + body
+		file := filepath.Join(t.TempDir(), "commit")
+		if err := os.WriteFile(file, []byte(signed), 0644); err != nil {
+			t.Fatal(err)
+		}
+		return strings.TrimSpace(gitOutput(t, dir, "hash-object", "-t", "commit", "-w", file))
+	}
+	gitRun(t, dir, "update-ref", "HEAD", sign("HEAD"))
+	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte("changed\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, dir, "stash", "-q")
+	gitRun(t, dir, "update-ref", "refs/stash", sign("refs/stash"))
+
+	gitRun(t, dir, "config", "log.showSignature", "true")
+	gitRun(t, dir, "config", "gpg.program", hook)
+
+	if _, err := Status(dir); err != nil {
+		t.Fatalf("Status: %v", err)
+	}
+	if _, err := os.Stat(marker); err == nil {
+		t.Fatal("gpg.program from repo config was executed")
+	}
+}
+
 func TestApplyFileLine_ConflictCountsAsUnstaged(t *testing.T) {
 	var st model.RepoStatus
 	applyFileLine(&st, "u UU N... 100644 100644 100644 100644 aa bb cc f.go")
@@ -267,6 +309,25 @@ func TestStatus_HiddenWork(t *testing.T) {
 	}
 	gitRun(t, local, "stash", "-q")
 	check(t, local, 1, 0, true)
+}
+
+// A repo with no commits must not error just because HEAD doesn't resolve yet,
+// but a failed check elsewhere must surface rather than read as "nothing hidden".
+func TestStatus_HiddenWorkErrors(t *testing.T) {
+	unborn := t.TempDir()
+	gitRun(t, unborn, "init", "-q")
+	gitRun(t, unborn, "remote", "add", "origin", "/nonexistent")
+	if _, err := Status(unborn); err != nil {
+		t.Errorf("unborn HEAD with a remote: %v", err)
+	}
+
+	var st model.RepoStatus
+	if err := applyHiddenWork(t.TempDir(), &st, false, false); err == nil {
+		t.Error("applyHiddenWork outside a repo returned no error")
+	}
+	if _, err := countRevs(initRepoWithCommit(t), "refs/heads/missing"); err == nil {
+		t.Error("countRevs on a missing ref returned no error")
+	}
 }
 
 func gitOutput(t *testing.T, dir string, args ...string) string {

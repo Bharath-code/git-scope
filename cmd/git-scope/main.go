@@ -5,6 +5,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -39,6 +40,7 @@ Commands:
   (default)   Launch TUI dashboard
   scan        Scan and print repos (JSON)
   status      Print repo state sorted by attention (--json)
+  check       Exit 1 if any repo has work that could be lost (2 if unable to tell)
   mcp         Run a read-only MCP server on stdio for AI agents
   scan-all    Full system scan from home directory (with stats)
   init        Create config file interactively
@@ -51,6 +53,7 @@ Examples:
   git-scope scan .             # Scan current directory (JSON)
   git-scope scan-all           # Find ALL repos on your system
   git-scope status --json      # Attention-sorted repo state for scripts/agents
+  git-scope check ~/code       # Fail if work there isn't safely on a remote
   git-scope init               # Setup config interactively
   git-scope issue              # Open GitHub issues page
 
@@ -122,7 +125,7 @@ func parseCommand(args []string) (cmd string, dirs []string) {
 	}
 
 	switch args[0] {
-	case "scan", "status", "mcp", "tui", "help", "init", "scan-all", "issue":
+	case "scan", "status", "check", "mcp", "tui", "help", "init", "scan-all", "issue":
 		return args[0], args[1:]
 	default:
 		return "tui", args // assume it's a directory
@@ -182,6 +185,10 @@ func run(cmd string, dirs []string, configPath string) error {
 		}
 		return nil
 
+	case "check":
+		os.Exit(runCheck(os.Stdout, os.Stderr, cfg.Roots, cfg.Ignore))
+		return nil
+
 	case "mcp":
 		if err := mcpserver.Run(context.Background(), cfg.Roots, cfg.Ignore, version); err != nil {
 			return fmt.Errorf("mcp error: %w", err)
@@ -198,6 +205,37 @@ func run(cmd string, dirs []string, configPath string) error {
 		usage()
 		return fmt.Errorf("unknown command: %s", cmd)
 	}
+}
+
+// Exit codes for `git-scope check`.
+const (
+	checkSafe   = 0
+	checkAtRisk = 1
+	checkUnsure = 2
+)
+
+// runCheck fails closed: a missing root or an empty scan can't be reported as
+// safe, because a mistyped path would otherwise look like a clean workspace.
+func runCheck(stdout, stderr io.Writer, roots, ignore []string) int {
+	for _, root := range roots {
+		if _, err := os.Stat(root); err != nil {
+			fmt.Fprintf(stderr, "git-scope check: cannot read root: %v\n", err)
+			return checkUnsure
+		}
+	}
+	repos, err := scan.ScanRoots(roots, ignore)
+	if err != nil {
+		fmt.Fprintf(stderr, "git-scope check: %v\n", err)
+		return checkUnsure
+	}
+	if len(repos) == 0 {
+		fmt.Fprintf(stderr, "git-scope check: no repositories found in %s\n", strings.Join(roots, ", "))
+		return checkUnsure
+	}
+	if report.PrintAtRisk(stdout, repos, time.Now()) > 0 {
+		return checkAtRisk
+	}
+	return checkSafe
 }
 
 // without returns args minus every occurrence of flag.

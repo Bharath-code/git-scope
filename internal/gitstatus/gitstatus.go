@@ -21,13 +21,16 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		return status, fmt.Errorf("git status: %w", err)
 	}
 
-	hasUpstream := false
+	hasUpstream, unborn := false, false
 	for _, line := range strings.Split(string(out), "\n") {
 		if line == "" {
 			continue
 		}
 		if strings.HasPrefix(line, "# branch.upstream ") {
 			hasUpstream = true
+		}
+		if line == "# branch.oid (initial)" {
+			unborn = true
 		}
 
 		// header lines -> branch metadata
@@ -40,17 +43,7 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		applyFileLine(&status, line)
 	}
 
-	// Repos without remotes skip the unpushed checks: with nowhere to push,
-	// "unpushed" would flag every local-only project.
-	if hasRemote(repoPath) {
-		if !hasUpstream && status.Branch != "" {
-			// Never-pushed branch or detached HEAD: no `branch.ab` line to read.
-			status.Ahead = countRevs(repoPath, "HEAD", "--not", "--remotes")
-		}
-		// HEAD is excluded because its unpushed commits are already in Ahead.
-		status.OtherBranchCommits = countRevs(repoPath, "--branches", "--not", "--remotes", "HEAD")
-	}
-	status.Stashes = countRevs(repoPath, "--walk-reflogs", "refs/stash")
+	hiddenErr := applyHiddenWork(repoPath, &status, hasUpstream, unborn)
 
 	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0 ||
 		status.Ahead > 0 || status.Behind > 0 || status.Stashes > 0 || status.OtherBranchCommits > 0
@@ -59,13 +52,17 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		status.LastCommit = t
 	}
 
+	if hiddenErr != nil {
+		return status, hiddenErr
+	}
 	return status, nil
 }
 
 // safeArgs neutralise repo config that would make a read turn into a write or
-// an exec: core.fsmonitor names a program git runs during status, and
-// --no-optional-locks stops status from rewriting .git/index.
-var safeArgs = []string{"-c", "core.fsmonitor=false", "--no-optional-locks"}
+// an exec: core.fsmonitor names a program git runs during status,
+// log.showSignature makes log run gpg.program, and --no-optional-locks stops
+// status from rewriting .git/index.
+var safeArgs = []string{"-c", "core.fsmonitor=false", "-c", "log.showSignature=false", "--no-optional-locks"}
 
 // Command builds a git command that is safe to run inside repositories
 // git-scope did not create. Every git invocation should go through it.
@@ -87,20 +84,46 @@ func runGit(dir string, args ...string) ([]byte, error) {
 	return Command(ctx, dir, args...).Output()
 }
 
-func hasRemote(repoPath string) bool {
+// applyHiddenWork fills in the work `git status` doesn't show. A failure is
+// returned, never counted as 0: "couldn't tell" must not read as "nothing at risk".
+func applyHiddenWork(repoPath string, status *model.RepoStatus, hasUpstream, unborn bool) error {
+	stashes, err := runGit(repoPath, "stash", "list", "--format=%gd")
+	if err != nil {
+		return fmt.Errorf("git stash list: %w", err)
+	}
+	status.Stashes = len(strings.Fields(string(stashes)))
+
 	remotes, err := runGit(repoPath, "remote")
-	return err == nil && len(strings.TrimSpace(string(remotes))) > 0
+	if err != nil {
+		return fmt.Errorf("git remote: %w", err)
+	}
+	// With nowhere to push, "unpushed" would flag every local-only project.
+	if len(strings.TrimSpace(string(remotes))) == 0 {
+		return nil
+	}
+
+	// Never-pushed branch or detached HEAD: no `branch.ab` line to read.
+	if !hasUpstream && !unborn && status.Branch != "" {
+		if status.Ahead, err = countRevs(repoPath, "HEAD", "--not", "--remotes"); err != nil {
+			return err
+		}
+	}
+
+	args := []string{"--branches", "--not", "--remotes"}
+	if !unborn {
+		// HEAD's unpushed commits are already in Ahead.
+		args = append(args, "HEAD")
+	}
+	status.OtherBranchCommits, err = countRevs(repoPath, args...)
+	return err
 }
 
-// countRevs returns `git rev-list --count` for args, or 0 if it fails, which is
-// also how git answers for a ref that doesn't exist (no stash, unborn HEAD).
-func countRevs(repoPath string, args ...string) int {
+func countRevs(repoPath string, args ...string) (int, error) {
 	out, err := runGit(repoPath, append([]string{"rev-list", "--count"}, args...)...)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("git rev-list: %w", err)
 	}
-	n, _ := strconv.Atoi(strings.TrimSpace(string(out)))
-	return n
+	return strconv.Atoi(strings.TrimSpace(string(out)))
 }
 
 // applyBranchHeader parses porcelain v2 branch metadata lines and updates

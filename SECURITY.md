@@ -30,7 +30,8 @@ git-scope promises to be **read-only, local-first, and safe at work**. These are
 - Any way scanning a repository can **modify it** (git-scope must never write to a repo)
 - Any way a malicious repository can make git-scope **execute code**, for example through
   repo-local git config such as `core.fsmonitor` (see `internal/gitstatus`)
-- Any **network call or data leaving the machine**, from the CLI, TUI, or `git-scope mcp`
+- Any **network call or data leaving the machine**, from the CLI, TUI, or `git-scope mcp`,
+  other than the `git fetch` to a repo's own remotes that the user triggers with `F`
 - The MCP server exposing repositories **outside the configured roots**
 - Config, cache, or state files written with permissions readable by other users
 

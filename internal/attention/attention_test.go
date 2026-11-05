@@ -117,3 +117,26 @@ func TestClassify_HiddenWorkIsWatch(t *testing.T) {
 		})
 	}
 }
+
+func TestAtRisk(t *testing.T) {
+	tests := []struct {
+		name string
+		s    model.RepoStatus
+		want bool
+	}{
+		{"clean", model.RepoStatus{}, false},
+		{"behind only", model.RepoStatus{Behind: 3, IsDirty: true}, false},
+		{"untracked", model.RepoStatus{Untracked: 1}, true},
+		{"ahead", model.RepoStatus{Ahead: 1}, true},
+		{"stash", model.RepoStatus{Stashes: 1}, true},
+		{"other branch", model.RepoStatus{OtherBranchCommits: 1}, true},
+		{"scan error", model.RepoStatus{ScanError: "boom"}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := AtRisk(tt.s); got != tt.want {
+				t.Errorf("AtRisk = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

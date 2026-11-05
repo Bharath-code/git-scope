@@ -19,8 +19,8 @@
 
 git-scope is designed to be safe to run frequently and safe to recommend.
 
-- **Read-only by design** — it does not modify repositories
-- **Local-first** — no network access, no telemetry, no accounts
+- **Read-only by design** — it never changes your files, branches, or commits. The one exception is `F` (Fetch All), which you trigger yourself: it runs `git fetch`, which updates remote-tracking refs
+- **Local-first** — no telemetry, no accounts. The only network traffic is `git fetch` to your own remotes when you press `F`
 - **Predictable** — no background services or daemons
 - **Conservative scope** — focused on visibility, not automation
 
@@ -76,6 +76,7 @@ git-scope              # Launch TUI dashboard
 git-scope init         # Create config file interactively
 git-scope scan         # Scan and print repos (JSON)
 git-scope status --json # Repo state sorted by attention (JSON)
+git-scope check        # Exit 1 if work could be lost, 2 if unable to tell
 git-scope mcp          # Read-only MCP server on stdio for AI agents
 git-scope scan-all     # Full system scan from home directory
 git-scope issue        # Open GitHub issues page in browser
@@ -118,6 +119,43 @@ Append directories to scan specific roots instead of your config: `"args": ["mcp
 Same data for scripts:
 ```bash
 git-scope status --json | jq '.[] | select(.tier != "CLEAN") | {path, reason}'
+```
+
+### Catch unsaved work with `git-scope check`
+
+`git-scope check [dirs...]` lists work that exists only on this machine: uncommitted files, unpushed commits on any branch, and stashes. Being behind a remote doesn't count, since nothing local can be lost.
+
+| Exit code | Meaning |
+| :--- | :--- |
+| `0` | Nothing at risk |
+| `1` | Work at risk (or a repo couldn't be read) |
+| `2` | Unable to tell: a root is missing or no repos were found |
+
+A branch that was squash-merged still counts as unpushed, because git can't tell it apart from unfinished work. Delete it to clear the warning.
+
+**Claude Code Stop hook** (needs `jq`). This warns you when Claude finishes responding, without interrupting it. Stop hooks run after every response, so you'll also see it for normal work in progress. Add to `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "out=$(git-scope check \"$CLAUDE_PROJECT_DIR\" 2>&1) || jq -n --arg m \"$out\" '{systemMessage:$m}'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+To make Claude deal with the work before stopping instead, use this as the `command`. It blocks once per stop, then lets Claude finish:
+
+```bash
+[ "$(jq -r .stop_hook_active)" = true ] && exit 0; git-scope check "$CLAUDE_PROJECT_DIR" >&2 || exit 2
 ```
 
 -----
@@ -186,7 +224,7 @@ Typical git workflows involve "tunnel vision"—working deep inside one reposito
 | `[` / `]` | **Page Navigation** (Previous / Next) |
 | `Enter` | **Open** repo in Editor |
 | `c` | **Clear** search & filters |
-| `F` | **Fetch All** — update remotes across every repo (safe, read-only) |
+| `F` | **Fetch All** — run `git fetch` across every repo (uses the network; updates remote-tracking refs only) |
 | `r` | **Rescan** directories |
 | `g` | Toggle **Contribution Graph** |
 | `d` | Toggle **Disk Usage** view |
@@ -258,11 +296,11 @@ git-scope reduces context switching when working across many Git repositories, s
 
 ### Is git-scope safe to use at work?
 
-Yes. git-scope is read-only by design, runs entirely locally, has no network access or telemetry, and does not modify repositories. This makes it safe for daily and work use.
+git-scope runs locally with no telemetry or accounts, and never changes your files, branches, or commits. The only network traffic and the only change to `.git` come from `F` (Fetch All), which runs `git fetch` when you press it.
 
 ### Does git-scope replace git commands?
 
-No. git-scope does not perform git actions like commit, push, or pull. It focuses on visibility and orientation, not automation.
+No. Apart from the optional `git fetch` behind `F`, git-scope does not perform git actions like commit, push, or pull. It focuses on visibility and orientation, not automation.
 
 ### Is git-scope suitable for monorepos?
 
