@@ -195,6 +195,48 @@ func TestStatus_IgnoresRepoFsmonitor(t *testing.T) {
 	}
 }
 
+// log.showSignature makes `git log` and `git stash list` verify signatures by
+// running gpg.program, which a repo's own config can point anywhere.
+func TestStatus_IgnoresRepoGpgProgram(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses a shell script hook")
+	}
+	dir := initRepoWithCommit(t)
+	marker := filepath.Join(t.TempDir(), "executed")
+	hook := filepath.Join(t.TempDir(), "gpg.sh")
+	if err := os.WriteFile(hook, []byte("#!/bin/sh\ntouch "+marker+"\n"), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign HEAD and a stash with a fake signature; the content never needs to verify.
+	sign := func(ref string) string {
+		obj := gitOutput(t, dir, "cat-file", "commit", ref)
+		head, body, _ := strings.Cut(obj, "\n\n")
+		signed := head + "\ngpgsig -----BEGIN PGP SIGNATURE-----\n x\n -----END PGP SIGNATURE-----\n\n" + body
+		file := filepath.Join(t.TempDir(), "commit")
+		if err := os.WriteFile(file, []byte(signed), 0644); err != nil {
+			t.Fatal(err)
+		}
+		return strings.TrimSpace(gitOutput(t, dir, "hash-object", "-t", "commit", "-w", file))
+	}
+	gitRun(t, dir, "update-ref", "HEAD", sign("HEAD"))
+	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte("changed\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, dir, "stash", "-q")
+	gitRun(t, dir, "update-ref", "refs/stash", sign("refs/stash"))
+
+	gitRun(t, dir, "config", "log.showSignature", "true")
+	gitRun(t, dir, "config", "gpg.program", hook)
+
+	if _, err := Status(dir); err != nil {
+		t.Fatalf("Status: %v", err)
+	}
+	if _, err := os.Stat(marker); err == nil {
+		t.Fatal("gpg.program from repo config was executed")
+	}
+}
+
 func TestApplyFileLine_ConflictCountsAsUnstaged(t *testing.T) {
 	var st model.RepoStatus
 	applyFileLine(&st, "u UU N... 100644 100644 100644 100644 aa bb cc f.go")
@@ -267,6 +309,108 @@ func TestStatus_HiddenWork(t *testing.T) {
 	}
 	gitRun(t, local, "stash", "-q")
 	check(t, local, 1, 0, true)
+}
+
+// A repo with no commits must not error just because HEAD doesn't resolve yet,
+// but a failed check elsewhere must surface rather than read as "nothing hidden".
+func TestStatus_HiddenWorkErrors(t *testing.T) {
+	unborn := t.TempDir()
+	gitRun(t, unborn, "init", "-q")
+	gitRun(t, unborn, "remote", "add", "origin", "/nonexistent")
+	if _, err := Status(unborn); err != nil {
+		t.Errorf("unborn HEAD with a remote: %v", err)
+	}
+
+	var st model.RepoStatus
+	if err := applyHiddenWork(t.TempDir(), &st, "", false, false); err == nil {
+		t.Error("applyHiddenWork outside a repo returned no error")
+	}
+	if _, err := countRevs(initRepoWithCommit(t), "refs/heads/missing"); err == nil {
+		t.Error("countRevs on a missing ref returned no error")
+	}
+}
+
+// Repo config and unusual upstreams must not hide work that exists only here.
+func TestStatus_NothingHidesLocalWork(t *testing.T) {
+	setup := func(t *testing.T) string {
+		t.Helper()
+		origin := initRepoWithCommit(t)
+		clone := t.TempDir()
+		gitRun(t, clone, "clone", "-q", origin, ".")
+		return clone
+	}
+	commit := func(t *testing.T, dir, name string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(name), 0644); err != nil {
+			t.Fatal(err)
+		}
+		gitRun(t, dir, "add", name)
+		gitRun(t, dir, "commit", "-qm", name)
+	}
+
+	t.Run("upstream deleted on the remote", func(t *testing.T) {
+		dir := setup(t)
+		gitRun(t, dir, "checkout", "-qb", "agent/x")
+		commit(t, dir, "a")
+		gitRun(t, dir, "push", "-qu", "origin", "agent/x")
+		commit(t, dir, "b")
+		gitRun(t, dir, "push", "-q", "origin", "--delete", "agent/x")
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Ahead != 2 {
+			t.Errorf("Ahead = %d, want 2", st.Ahead)
+		}
+	})
+
+	t.Run("upstream is a local branch", func(t *testing.T) {
+		dir := setup(t)
+		gitRun(t, dir, "checkout", "-q", "--track", "-b", "feature", "main")
+		commit(t, dir, "a")
+		gitRun(t, dir, "checkout", "-q", "--track", "-b", "child", "feature")
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Ahead != 1 {
+			t.Errorf("Ahead = %d, want 1", st.Ahead)
+		}
+	})
+
+	t.Run("status.showUntrackedFiles=no", func(t *testing.T) {
+		dir := setup(t)
+		gitRun(t, dir, "config", "status.showUntrackedFiles", "no")
+		if err := os.WriteFile(filepath.Join(dir, "new"), []byte("x"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Untracked != 1 {
+			t.Errorf("Untracked = %d, want 1", st.Untracked)
+		}
+	})
+
+	t.Run("diff.ignoreSubmodules=all", func(t *testing.T) {
+		sub := initRepoWithCommit(t)
+		dir := setup(t)
+		gitRun(t, dir, "-c", "protocol.file.allow=always", "submodule", "add", "-q", sub, "sub")
+		gitRun(t, dir, "commit", "-qm", "add submodule")
+		gitRun(t, dir, "push", "-q", "origin", "HEAD:refs/heads/with-sub")
+		gitRun(t, dir, "config", "diff.ignoreSubmodules", "all")
+		if err := os.WriteFile(filepath.Join(dir, "sub", "README.md"), []byte("changed\n"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Unstaged != 1 {
+			t.Errorf("Unstaged = %d, want 1", st.Unstaged)
+		}
+	})
 }
 
 func gitOutput(t *testing.T, dir string, args ...string) string {

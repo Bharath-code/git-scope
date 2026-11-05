@@ -34,10 +34,7 @@ type Repo struct {
 
 // Build sorts repos by attention (most urgent first) and converts them.
 func Build(repos []model.Repo, now time.Time) []Repo {
-	sorted := append([]model.Repo(nil), repos...)
-	sort.SliceStable(sorted, func(i, j int) bool {
-		return attention.Less(sorted[i], sorted[j], now)
-	})
+	sorted := byAttention(repos, now)
 	out := make([]Repo, 0, len(sorted))
 	for _, r := range sorted {
 		s := r.Status
@@ -58,6 +55,36 @@ func Build(repos []model.Repo, now time.Time) []Repo {
 		})
 	}
 	return out
+}
+
+func byAttention(repos []model.Repo, now time.Time) []model.Repo {
+	sorted := append([]model.Repo(nil), repos...)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return attention.Less(sorted[i], sorted[j], now)
+	})
+	return sorted
+}
+
+// PrintAtRisk lists repos holding work that could be lost, most urgent first,
+// and returns how many there are.
+func PrintAtRisk(w io.Writer, repos []model.Repo, now time.Time) int {
+	n := 0
+	for _, r := range byAttention(repos, now) {
+		if !attention.AtRisk(r.Status) {
+			continue
+		}
+		n++
+		fmt.Fprintf(w, "%s: %s\n", r.Path, Reason(r.Status, now))
+		if r.Status.ScanError != "" {
+			fmt.Fprintf(w, "  %s\n", r.Status.ScanError)
+		}
+	}
+	if n == 0 {
+		fmt.Fprintf(w, "nothing at risk in %d repo%s\n", len(repos), plural(len(repos)))
+	} else {
+		fmt.Fprintf(w, "%d of %d repo%s with work at risk\n", n, len(repos), plural(len(repos)))
+	}
+	return n
 }
 
 // Reason explains the tier in a short phrase, listing signals in attention

@@ -61,6 +61,13 @@ func Classify(s model.RepoStatus, now time.Time) Tier {
 	return Clean
 }
 
+// AtRisk reports whether work exists only on this machine, or that can't be
+// ruled out. Being behind isn't a risk: nothing local can be lost by it.
+func AtRisk(s model.RepoStatus) bool {
+	return s.ScanError != "" || s.Staged+s.Unstaged+s.Untracked > 0 ||
+		s.Ahead > 0 || s.Stashes > 0 || s.OtherBranchCommits > 0
+}
+
 // Stale reports whether a dirty repo has been left untouched past StaleThreshold.
 // It never promotes a repo to a higher tier; it only nudges within-tier order.
 func Stale(s model.RepoStatus, now time.Time) bool {

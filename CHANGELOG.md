@@ -8,7 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `git-scope check`: lists work that exists only on this machine. Exits 0 if
+  nothing is at risk, 1 if something is, 2 if it can't tell. The README has a
+  Claude Code Stop hook recipe.
+
 ### Fixed
+- Repo-local `log.showSignature` and `gpg.program` config could make git-scope
+  run a program while scanning. Signature checks are now turned off.
+- Unpushed commits were missed when a branch's upstream had been deleted or was
+  another local branch, and repo config (`status.showUntrackedFiles`,
+  `diff.ignoreSubmodules`) could hide untracked files and submodule changes.
+- A git command that failed while looking for stashes or unpushed commits was
+  counted as "none", which could show a repo as CLEAN. It is now a scan error.
+- The README and SECURITY.md said git-scope never uses the network, but `F`
+  runs `git fetch`. They now describe that exception.
 - Repos holding only stashes, or unpushed commits on a branch that isn't checked
   out, were reported as CLEAN. They are now WATCH, with new `stashes` and
   `other_branch_commits` fields in `status --json` and MCP, and a **Hidden**
