@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an idea for git-scope
+title: "[FEATURE] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+      placeholder: "When I run several agents across worktrees, I can't tell..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like git-scope to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Fit with git-scope's principles
+      options:
+        - label: This keeps git-scope read-only and local-first (no network calls, no telemetry)

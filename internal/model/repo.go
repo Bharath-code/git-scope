@@ -4,15 +4,19 @@ import "time"
 
 // RepoStatus contains the git status information for a repository
 type RepoStatus struct {
-	Branch     string    `json:"branch"`
-	Ahead      int       `json:"ahead"`
-	Behind     int       `json:"behind"`
-	Staged     int       `json:"staged"`
-	Unstaged   int       `json:"unstaged"`
-	Untracked  int       `json:"untracked"`
-	LastCommit time.Time `json:"last_commit"`
-	IsDirty    bool      `json:"is_dirty"`
-	ScanError  string    `json:"scan_error,omitempty"`
+	Branch    string `json:"branch"`
+	Ahead     int    `json:"ahead"`
+	Behind    int    `json:"behind"`
+	Staged    int    `json:"staged"`
+	Unstaged  int    `json:"unstaged"`
+	Untracked int    `json:"untracked"`
+	Stashes   int    `json:"stashes"`
+	// OtherBranchCommits counts commits on local branches other than HEAD
+	// that no remote has and HEAD does not contain.
+	OtherBranchCommits int       `json:"other_branch_commits"`
+	LastCommit         time.Time `json:"last_commit"`
+	IsDirty            bool      `json:"is_dirty"`
+	ScanError          string    `json:"scan_error,omitempty"`
 }
 
 // Repo represents a git repository with its metadata and status

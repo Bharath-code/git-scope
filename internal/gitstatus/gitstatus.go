@@ -21,9 +21,13 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		return status, fmt.Errorf("git status: %w", err)
 	}
 
+	hasUpstream := false
 	for _, line := range strings.Split(string(out), "\n") {
 		if line == "" {
 			continue
+		}
+		if strings.HasPrefix(line, "# branch.upstream ") {
+			hasUpstream = true
 		}
 
 		// header lines -> branch metadata
@@ -36,7 +40,20 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		applyFileLine(&status, line)
 	}
 
-	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0 || status.Ahead > 0 || status.Behind > 0
+	// Repos without remotes skip the unpushed checks: with nowhere to push,
+	// "unpushed" would flag every local-only project.
+	if hasRemote(repoPath) {
+		if !hasUpstream && status.Branch != "" {
+			// Never-pushed branch or detached HEAD: no `branch.ab` line to read.
+			status.Ahead = countRevs(repoPath, "HEAD", "--not", "--remotes")
+		}
+		// HEAD is excluded because its unpushed commits are already in Ahead.
+		status.OtherBranchCommits = countRevs(repoPath, "--branches", "--not", "--remotes", "HEAD")
+	}
+	status.Stashes = countRevs(repoPath, "--walk-reflogs", "refs/stash")
+
+	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0 ||
+		status.Ahead > 0 || status.Behind > 0 || status.Stashes > 0 || status.OtherBranchCommits > 0
 
 	if t, err := lastCommitTime(repoPath); err == nil {
 		status.LastCommit = t
@@ -59,9 +76,31 @@ func Command(ctx context.Context, dir string, args ...string) *exec.Cmd {
 	return cmd
 }
 
+// gitTimeout bounds each read so one hung repo (network mount, stuck lock)
+// cannot stall a whole scan or a long-running MCP server.
+const gitTimeout = 10 * time.Second
+
 // runGit runs a git command in dir and returns its stdout.
 func runGit(dir string, args ...string) ([]byte, error) {
-	return Command(context.Background(), dir, args...).Output()
+	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
+	defer cancel()
+	return Command(ctx, dir, args...).Output()
+}
+
+func hasRemote(repoPath string) bool {
+	remotes, err := runGit(repoPath, "remote")
+	return err == nil && len(strings.TrimSpace(string(remotes))) > 0
+}
+
+// countRevs returns `git rev-list --count` for args, or 0 if it fails, which is
+// also how git answers for a ref that doesn't exist (no stash, unborn HEAD).
+func countRevs(repoPath string, args ...string) int {
+	out, err := runGit(repoPath, append([]string{"rev-list", "--count"}, args...)...)
+	if err != nil {
+		return 0
+	}
+	n, _ := strconv.Atoi(strings.TrimSpace(string(out)))
+	return n
 }
 
 // applyBranchHeader parses porcelain v2 branch metadata lines and updates
@@ -120,6 +159,10 @@ func applyFileLine(status *model.RepoStatus, line string) {
 		if unstaged {
 			status.Unstaged++
 		}
+
+	// u = unmerged (conflict) entry; count as unstaged work so it is never CLEAN
+	case strings.HasPrefix(line, "u "):
+		status.Unstaged++
 
 	case strings.HasPrefix(line, "? "):
 		status.Untracked++

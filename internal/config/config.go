@@ -108,7 +108,7 @@ func ConfigExists(path string) bool {
 func CreateConfig(path string, roots []string, editor string) error {
 	// Ensure directory exists
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("create config dir: %w", err)
 	}
 
@@ -134,7 +134,7 @@ func CreateConfig(path string, roots []string, editor string) error {
 	// Add header comment
 	content := "# git-scope configuration\n# Edit this file to customize scanning behavior\n\n" + string(data)
 
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}
 

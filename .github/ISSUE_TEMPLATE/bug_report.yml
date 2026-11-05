@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in git-scope is broken or wrong
+title: "[BUG] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Security issues go through a [private advisory](https://github.com/Bharath-code/git-scope/security/advisories/new), not here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        1. Run `git-scope ~/code`
+        2. Press `...`
+        3. Expected X, saw Y
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: git-scope version
+      description: Output of `git-scope --version`
+      placeholder: git-scope v1.4.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS, Linux, Windows, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did it happen?
+      options: [TUI dashboard, status --json / scan, MCP server (git-scope mcp), init / config, Other]
+    validations:
+      required: true
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal / MCP client
+      placeholder: iTerm2, Windows Terminal, Claude Code, Cursor...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output or screenshots
+      description: Paste relevant output. Redact private repo paths if needed.
+      render: shell

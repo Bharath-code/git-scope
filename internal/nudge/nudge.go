@@ -58,7 +58,7 @@ func saveState(state *NudgeState) error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}
 
@@ -67,7 +67,7 @@ func saveState(state *NudgeState) error {
 		return err
 	}
 
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0o600)
 }
 
 // ShouldShowNudge checks if the star nudge should be shown

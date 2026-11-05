@@ -25,7 +25,8 @@ func TestLoad_MissingFileReturnsDefaults(t *testing.T) {
 
 func TestLoad_ValidFileMergesOverDefaults(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yml")
-	body := "roots:\n  - /tmp/projects\neditor: nvim\n"
+	root := filepath.Join(t.TempDir(), "projects")
+	body := "roots:\n  - '" + root + "'\neditor: nvim\n"
 	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -37,8 +38,8 @@ func TestLoad_ValidFileMergesOverDefaults(t *testing.T) {
 	if cfg.Editor != "nvim" {
 		t.Errorf("editor = %q, want nvim", cfg.Editor)
 	}
-	if len(cfg.Roots) != 1 || cfg.Roots[0] != "/tmp/projects" {
-		t.Errorf("roots = %v, want [/tmp/projects]", cfg.Roots)
+	if len(cfg.Roots) != 1 || cfg.Roots[0] != root {
+		t.Errorf("roots = %v, want [%s]", cfg.Roots, root)
 	}
 	// Fields absent from the file keep their defaults.
 	if !containsString(cfg.Ignore, "node_modules") {
@@ -99,7 +100,7 @@ func TestExpandPath(t *testing.T) {
 		want string
 	}{
 		{"tilde", "~/foo", filepath.Join(home, "foo")},
-		{"absolute unchanged", "/var/log", "/var/log"},
+		{"absolute unchanged", filepath.Join(cwd, "log"), filepath.Join(cwd, "log")},
 		{"dot becomes cwd", ".", cwd},
 	}
 	for _, tt := range tests {

@@ -75,12 +75,50 @@ git-scope
 git-scope              # Launch TUI dashboard
 git-scope init         # Create config file interactively
 git-scope scan         # Scan and print repos (JSON)
+git-scope status --json # Repo state sorted by attention (JSON)
+git-scope mcp          # Read-only MCP server on stdio for AI agents
 git-scope scan-all     # Full system scan from home directory
 git-scope issue        # Open GitHub issues page in browser
 git-scope -h           # Show help
 ```
 
 *By default, it recursively scans the current directory. You can configure permanent root paths later.*
+
+-----
+
+## 🤖 Use with Claude Code / Cursor
+
+Running several coding agents across repos and worktrees? `git-scope mcp` lets an agent see every repo's state — uncommitted files, unpushed commits, ahead/behind — before it starts or ends a task. It is read-only, local-only (no network calls, no telemetry) and scans the roots from your config.
+
+| Tool | Returns |
+|------|---------|
+| `list_repos` | Every repo, most urgent first |
+| `needs_attention` | Only `ACTION` / `WATCH` repos (unpushed on any branch, behind, uncommitted, or stashed) |
+| `repo_status(path)` | One repo under your configured roots |
+
+**Claude Code:**
+```bash
+claude mcp add git-scope -- git-scope mcp
+```
+
+**Cursor** (`~/.cursor/mcp.json`), or any client using the `mcpServers` format:
+```json
+{
+  "mcpServers": {
+    "git-scope": {
+      "command": "git-scope",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Append directories to scan specific roots instead of your config: `"args": ["mcp", "~/code", "~/work"]`.
+
+Same data for scripts:
+```bash
+git-scope status --json | jq '.[] | select(.tier != "CLEAN") | {path, reason}'
+```
 
 -----
 
@@ -109,7 +147,7 @@ git-scope -h           # Show help
   * **📄 Pagination** — Navigate large repo lists with page-by-page browsing (`[` / `]`). Shows 15 repos per page with a dynamic page indicator.
   * **🚀 Editor Jump** — Open the selected repo in VSCode, Neovim, Vim, or Helix (`Enter`).
   * **⚡ Blazing Fast** — JSON caching ensures \~10ms launch time even with 50+ repos.
-  * **📊 Dashboard Stats** — See branch name, staged/unstaged counts, and last commit time.
+  * **📊 Dashboard Stats** — See branch name, staged/unstaged counts, and last commit time. The **Hidden** column counts stashes plus unpushed commits on other local branches, work `git status` doesn't show.
   * **🌿 Contribution Graph** — GitHub-style local heatmap for your activity (`g`).
   * **💾 Disk Usage** — Visualize `.git` vs `node_modules` size (`d`).
   * **⏰ Timeline** — View recent activity across all projects (`t`).
