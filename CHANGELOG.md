@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Repo-local `log.showSignature` and `gpg.program` config could make git-scope
   run a program while scanning. Signature checks are now turned off.
+- Unpushed commits were missed when a branch's upstream had been deleted or was
+  another local branch, and repo config (`status.showUntrackedFiles`,
+  `diff.ignoreSubmodules`) could hide untracked files and submodule changes.
 - A git command that failed while looking for stashes or unpushed commits was
   counted as "none", which could show a repo as CLEAN. It is now a scan error.
 - The README and SECURITY.md said git-scope never uses the network, but `F`

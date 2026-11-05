@@ -16,18 +16,23 @@ import (
 func Status(repoPath string) (model.RepoStatus, error) {
 	status := model.RepoStatus{}
 
-	out, err := runGit(repoPath, "status", "--porcelain=v2", "-b")
+	// Explicit flags stop repo config (status.showUntrackedFiles,
+	// diff.ignoreSubmodules) from hiding work.
+	out, err := runGit(repoPath, "status", "--porcelain=v2", "-b", "--untracked-files=normal", "--ignore-submodules=none")
 	if err != nil {
 		return status, fmt.Errorf("git status: %w", err)
 	}
 
-	hasUpstream, unborn := false, false
+	upstream, hasCounts, unborn := "", false, false
 	for _, line := range strings.Split(string(out), "\n") {
 		if line == "" {
 			continue
 		}
-		if strings.HasPrefix(line, "# branch.upstream ") {
-			hasUpstream = true
+		if u, ok := strings.CutPrefix(line, "# branch.upstream "); ok {
+			upstream = u
+		}
+		if strings.HasPrefix(line, "# branch.ab ") {
+			_, _, hasCounts = parseAheadBehind(line)
 		}
 		if line == "# branch.oid (initial)" {
 			unborn = true
@@ -43,7 +48,7 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		applyFileLine(&status, line)
 	}
 
-	hiddenErr := applyHiddenWork(repoPath, &status, hasUpstream, unborn)
+	hiddenErr := applyHiddenWork(repoPath, &status, upstream, hasCounts, unborn)
 
 	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0 ||
 		status.Ahead > 0 || status.Behind > 0 || status.Stashes > 0 || status.OtherBranchCommits > 0
@@ -86,7 +91,7 @@ func runGit(dir string, args ...string) ([]byte, error) {
 
 // applyHiddenWork fills in the work `git status` doesn't show. A failure is
 // returned, never counted as 0: "couldn't tell" must not read as "nothing at risk".
-func applyHiddenWork(repoPath string, status *model.RepoStatus, hasUpstream, unborn bool) error {
+func applyHiddenWork(repoPath string, status *model.RepoStatus, upstream string, hasCounts, unborn bool) error {
 	stashes, err := runGit(repoPath, "stash", "list", "--format=%gd")
 	if err != nil {
 		return fmt.Errorf("git stash list: %w", err)
@@ -98,15 +103,21 @@ func applyHiddenWork(repoPath string, status *model.RepoStatus, hasUpstream, unb
 		return fmt.Errorf("git remote: %w", err)
 	}
 	// With nowhere to push, "unpushed" would flag every local-only project.
-	if len(strings.TrimSpace(string(remotes))) == 0 {
+	remoteNames := strings.Fields(string(remotes))
+	if len(remoteNames) == 0 {
 		return nil
 	}
 
-	// Never-pushed branch or detached HEAD: no `branch.ab` line to read.
-	if !hasUpstream && !unborn && status.Branch != "" {
-		if status.Ahead, err = countRevs(repoPath, "HEAD", "--not", "--remotes"); err != nil {
+	// `branch.ab` only proves work is safe when it compares against a remote.
+	// Without it (never pushed, detached HEAD, upstream deleted) or with a local
+	// upstream, count against the remotes directly.
+	vouched := hasCounts && tracksRemote(upstream, remoteNames)
+	if !unborn && status.Branch != "" && !vouched {
+		unpublished, err := countRevs(repoPath, "HEAD", "--not", "--remotes")
+		if err != nil {
 			return err
 		}
+		status.Ahead = max(status.Ahead, unpublished)
 	}
 
 	args := []string{"--branches", "--not", "--remotes"}
@@ -116,6 +127,15 @@ func applyHiddenWork(repoPath string, status *model.RepoStatus, hasUpstream, unb
 	}
 	status.OtherBranchCommits, err = countRevs(repoPath, args...)
 	return err
+}
+
+func tracksRemote(upstream string, remotes []string) bool {
+	for _, r := range remotes {
+		if strings.HasPrefix(upstream, r+"/") {
+			return true
+		}
+	}
+	return false
 }
 
 func countRevs(repoPath string, args ...string) (int, error) {

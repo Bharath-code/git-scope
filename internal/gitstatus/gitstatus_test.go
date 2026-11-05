@@ -322,12 +322,95 @@ func TestStatus_HiddenWorkErrors(t *testing.T) {
 	}
 
 	var st model.RepoStatus
-	if err := applyHiddenWork(t.TempDir(), &st, false, false); err == nil {
+	if err := applyHiddenWork(t.TempDir(), &st, "", false, false); err == nil {
 		t.Error("applyHiddenWork outside a repo returned no error")
 	}
 	if _, err := countRevs(initRepoWithCommit(t), "refs/heads/missing"); err == nil {
 		t.Error("countRevs on a missing ref returned no error")
 	}
+}
+
+// Repo config and unusual upstreams must not hide work that exists only here.
+func TestStatus_NothingHidesLocalWork(t *testing.T) {
+	setup := func(t *testing.T) string {
+		t.Helper()
+		origin := initRepoWithCommit(t)
+		clone := t.TempDir()
+		gitRun(t, clone, "clone", "-q", origin, ".")
+		return clone
+	}
+	commit := func(t *testing.T, dir, name string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(name), 0644); err != nil {
+			t.Fatal(err)
+		}
+		gitRun(t, dir, "add", name)
+		gitRun(t, dir, "commit", "-qm", name)
+	}
+
+	t.Run("upstream deleted on the remote", func(t *testing.T) {
+		dir := setup(t)
+		gitRun(t, dir, "checkout", "-qb", "agent/x")
+		commit(t, dir, "a")
+		gitRun(t, dir, "push", "-qu", "origin", "agent/x")
+		commit(t, dir, "b")
+		gitRun(t, dir, "push", "-q", "origin", "--delete", "agent/x")
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Ahead != 2 {
+			t.Errorf("Ahead = %d, want 2", st.Ahead)
+		}
+	})
+
+	t.Run("upstream is a local branch", func(t *testing.T) {
+		dir := setup(t)
+		gitRun(t, dir, "checkout", "-q", "--track", "-b", "feature", "main")
+		commit(t, dir, "a")
+		gitRun(t, dir, "checkout", "-q", "--track", "-b", "child", "feature")
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Ahead != 1 {
+			t.Errorf("Ahead = %d, want 1", st.Ahead)
+		}
+	})
+
+	t.Run("status.showUntrackedFiles=no", func(t *testing.T) {
+		dir := setup(t)
+		gitRun(t, dir, "config", "status.showUntrackedFiles", "no")
+		if err := os.WriteFile(filepath.Join(dir, "new"), []byte("x"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Untracked != 1 {
+			t.Errorf("Untracked = %d, want 1", st.Untracked)
+		}
+	})
+
+	t.Run("diff.ignoreSubmodules=all", func(t *testing.T) {
+		sub := initRepoWithCommit(t)
+		dir := setup(t)
+		gitRun(t, dir, "-c", "protocol.file.allow=always", "submodule", "add", "-q", sub, "sub")
+		gitRun(t, dir, "commit", "-qm", "add submodule")
+		gitRun(t, dir, "push", "-q", "origin", "HEAD:refs/heads/with-sub")
+		gitRun(t, dir, "config", "diff.ignoreSubmodules", "all")
+		if err := os.WriteFile(filepath.Join(dir, "sub", "README.md"), []byte("changed\n"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Unstaged != 1 {
+			t.Errorf("Unstaged = %d, want 1", st.Unstaged)
+		}
+	})
 }
 
 func gitOutput(t *testing.T, dir string, args ...string) string {
