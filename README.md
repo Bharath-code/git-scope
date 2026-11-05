@@ -93,7 +93,7 @@ Running several coding agents across repos and worktrees? `git-scope mcp` lets a
 | Tool | Returns |
 |------|---------|
 | `list_repos` | Every repo, most urgent first |
-| `needs_attention` | Only `ACTION` / `WATCH` repos (unpushed, behind, or uncommitted) |
+| `needs_attention` | Only `ACTION` / `WATCH` repos (unpushed on any branch, behind, uncommitted, or stashed) |
 | `repo_status(path)` | One repo under your configured roots |
 
 **Claude Code:**
@@ -147,7 +147,7 @@ git-scope status --json | jq '.[] | select(.tier != "CLEAN") | {path, reason}'
   * **📄 Pagination** — Navigate large repo lists with page-by-page browsing (`[` / `]`). Shows 15 repos per page with a dynamic page indicator.
   * **🚀 Editor Jump** — Open the selected repo in VSCode, Neovim, Vim, or Helix (`Enter`).
   * **⚡ Blazing Fast** — JSON caching ensures \~10ms launch time even with 50+ repos.
-  * **📊 Dashboard Stats** — See branch name, staged/unstaged counts, and last commit time.
+  * **📊 Dashboard Stats** — See branch name, staged/unstaged counts, and last commit time. The **Hidden** column counts stashes plus unpushed commits on other local branches, work `git status` doesn't show.
   * **🌿 Contribution Graph** — GitHub-style local heatmap for your activity (`g`).
   * **💾 Disk Usage** — Visualize `.git` vs `node_modules` size (`d`).
   * **⏰ Timeline** — View recent activity across all projects (`t`).

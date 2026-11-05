@@ -40,11 +40,20 @@ func Status(repoPath string) (model.RepoStatus, error) {
 		applyFileLine(&status, line)
 	}
 
-	if !hasUpstream && status.Branch != "" {
-		status.Ahead = unpublishedCommits(repoPath)
+	// Repos without remotes skip the unpushed checks: with nowhere to push,
+	// "unpushed" would flag every local-only project.
+	if hasRemote(repoPath) {
+		if !hasUpstream && status.Branch != "" {
+			// Never-pushed branch or detached HEAD: no `branch.ab` line to read.
+			status.Ahead = countRevs(repoPath, "HEAD", "--not", "--remotes")
+		}
+		// HEAD is excluded because its unpushed commits are already in Ahead.
+		status.OtherBranchCommits = countRevs(repoPath, "--branches", "--not", "--remotes", "HEAD")
 	}
+	status.Stashes = countRevs(repoPath, "--walk-reflogs", "refs/stash")
 
-	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0 || status.Ahead > 0 || status.Behind > 0
+	status.IsDirty = status.Staged > 0 || status.Unstaged > 0 || status.Untracked > 0 ||
+		status.Ahead > 0 || status.Behind > 0 || status.Stashes > 0 || status.OtherBranchCommits > 0
 
 	if t, err := lastCommitTime(repoPath); err == nil {
 		status.LastCommit = t
@@ -78,16 +87,15 @@ func runGit(dir string, args ...string) ([]byte, error) {
 	return Command(ctx, dir, args...).Output()
 }
 
-// unpublishedCommits counts commits on HEAD that no remote-tracking ref
-// contains — work on a never-pushed branch or a detached HEAD, which has no
-// upstream and so no `branch.ab` line. Repos without remotes report 0: with
-// nowhere to push, "unpushed" would flag every local-only project.
-func unpublishedCommits(repoPath string) int {
+func hasRemote(repoPath string) bool {
 	remotes, err := runGit(repoPath, "remote")
-	if err != nil || len(strings.TrimSpace(string(remotes))) == 0 {
-		return 0
-	}
-	out, err := runGit(repoPath, "rev-list", "--count", "HEAD", "--not", "--remotes")
+	return err == nil && len(strings.TrimSpace(string(remotes))) > 0
+}
+
+// countRevs returns `git rev-list --count` for args, or 0 if it fails, which is
+// also how git answers for a ref that doesn't exist (no stash, unborn HEAD).
+func countRevs(repoPath string, args ...string) int {
+	out, err := runGit(repoPath, append([]string{"rev-list", "--count"}, args...)...)
 	if err != nil {
 		return 0
 	}

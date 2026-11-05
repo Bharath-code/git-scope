@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/Bharath-code/git-scope/internal/model"
@@ -200,6 +201,83 @@ func TestApplyFileLine_ConflictCountsAsUnstaged(t *testing.T) {
 	if st.Unstaged != 1 {
 		t.Errorf("Unstaged = %d, want 1 for a conflicted file", st.Unstaged)
 	}
+}
+
+// Stashes and commits on branches that aren't checked out are invisible to
+// `git status`, so a repo holding only those must not look clean.
+func TestStatus_HiddenWork(t *testing.T) {
+	origin := initRepoWithCommit(t)
+	clone := t.TempDir()
+	gitRun(t, clone, "clone", "-q", origin, ".")
+
+	commit := func(dir, name string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(name), 0644); err != nil {
+			t.Fatal(err)
+		}
+		gitRun(t, dir, "add", name)
+		gitRun(t, dir, "commit", "-qm", name)
+	}
+	check := func(t *testing.T, dir string, stashes, other int, dirty bool) {
+		t.Helper()
+		st, err := Status(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Stashes != stashes || st.OtherBranchCommits != other || st.IsDirty != dirty {
+			t.Errorf("Stashes=%d OtherBranchCommits=%d IsDirty=%v, want %d, %d, %v",
+				st.Stashes, st.OtherBranchCommits, st.IsDirty, stashes, other, dirty)
+		}
+	}
+
+	check(t, clone, 0, 0, false)
+	main := strings.TrimSpace(gitOutput(t, clone, "branch", "--show-current"))
+
+	gitRun(t, clone, "checkout", "-qb", "agent/done")
+	commit(clone, "a")
+	commit(clone, "b")
+	gitRun(t, clone, "checkout", "-q", main)
+	check(t, clone, 0, 2, true)
+
+	// Once pushed, the branch is safe.
+	gitRun(t, clone, "push", "-q", "origin", "agent/done")
+	check(t, clone, 0, 0, false)
+
+	// Merged into HEAD: the commits are reported as Ahead, not twice.
+	gitRun(t, clone, "checkout", "-qb", "agent/merged")
+	commit(clone, "c")
+	gitRun(t, clone, "checkout", "-q", main)
+	gitRun(t, clone, "merge", "-q", "--ff-only", "agent/merged")
+	if st, _ := Status(clone); st.OtherBranchCommits != 0 || st.Ahead != 1 {
+		t.Errorf("merged branch: OtherBranchCommits=%d Ahead=%d, want 0, 1", st.OtherBranchCommits, st.Ahead)
+	}
+
+	// A stash counts even with no remote; other branches don't, because there
+	// is nowhere to push them.
+	local := initRepoWithCommit(t)
+	branch := strings.TrimSpace(gitOutput(t, local, "branch", "--show-current"))
+	gitRun(t, local, "checkout", "-qb", "side")
+	commit(local, "s")
+	gitRun(t, local, "checkout", "-q", branch)
+	check(t, local, 0, 0, false)
+
+	commit(local, "tracked")
+	if err := os.WriteFile(filepath.Join(local, "tracked"), []byte("changed"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, local, "stash", "-q")
+	check(t, local, 1, 0, true)
+}
+
+func gitOutput(t *testing.T, dir string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("git %v: %v", args, err)
+	}
+	return string(out)
 }
 
 // Work with no upstream (a never-pushed agent branch, a detached HEAD) has no

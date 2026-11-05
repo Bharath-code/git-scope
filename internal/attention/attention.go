@@ -47,8 +47,10 @@ func (t Tier) Glyph() string {
 }
 
 // Classify buckets a repo by its highest-priority signal. A scan error or any
-// divergence from the remote (ahead/behind) is ACTION; uncommitted work that is
-// in sync with the remote is WATCH; everything else is CLEAN.
+// divergence from the remote (ahead/behind) is ACTION; uncommitted work, stashes
+// and unpushed commits on other branches are WATCH; everything else is CLEAN.
+// Other branches stay WATCH because squash-merged leftovers look identical to
+// unfinished work, and ACTION has to stay rare enough to mean something.
 func Classify(s model.RepoStatus, now time.Time) Tier {
 	if s.ScanError != "" || s.Ahead > 0 || s.Behind > 0 {
 		return Action

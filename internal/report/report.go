@@ -16,17 +16,20 @@ import (
 
 // Repo is one repository's state as reported to scripts and agents.
 type Repo struct {
-	Path       string    `json:"path" jsonschema:"absolute path of the repository"`
-	Name       string    `json:"name"`
-	Branch     string    `json:"branch"`
-	Dirty      int       `json:"dirty" jsonschema:"staged + unstaged + untracked file count"`
-	Ahead      int       `json:"ahead"`
-	Behind     int       `json:"behind"`
-	Unpushed   int       `json:"unpushed" jsonschema:"local commits not on the upstream branch"`
-	LastCommit time.Time `json:"last_commit,omitzero" jsonschema:"omitted when the repo has no commits"`
-	Tier       string    `json:"tier" jsonschema:"ACTION, WATCH or CLEAN"`
-	Reason     string    `json:"reason"`
-	Error      string    `json:"error,omitempty"`
+	Path     string `json:"path" jsonschema:"absolute path of the repository"`
+	Name     string `json:"name"`
+	Branch   string `json:"branch"`
+	Dirty    int    `json:"dirty" jsonschema:"staged + unstaged + untracked file count"`
+	Ahead    int    `json:"ahead"`
+	Behind   int    `json:"behind"`
+	Unpushed int    `json:"unpushed" jsonschema:"local commits not on the upstream branch"`
+	Stashes  int    `json:"stashes"`
+	// OtherBranchCommits is separate from Unpushed, which only covers HEAD.
+	OtherBranchCommits int       `json:"other_branch_commits" jsonschema:"commits on other local branches that no remote has"`
+	LastCommit         time.Time `json:"last_commit,omitzero" jsonschema:"omitted when the repo has no commits"`
+	Tier               string    `json:"tier" jsonschema:"ACTION, WATCH or CLEAN"`
+	Reason             string    `json:"reason"`
+	Error              string    `json:"error,omitempty"`
 }
 
 // Build sorts repos by attention (most urgent first) and converts them.
@@ -39,24 +42,26 @@ func Build(repos []model.Repo, now time.Time) []Repo {
 	for _, r := range sorted {
 		s := r.Status
 		out = append(out, Repo{
-			Path:       r.Path,
-			Name:       r.Name,
-			Branch:     s.Branch,
-			Dirty:      s.Staged + s.Unstaged + s.Untracked,
-			Ahead:      s.Ahead,
-			Behind:     s.Behind,
-			Unpushed:   s.Ahead,
-			LastCommit: s.LastCommit,
-			Tier:       attention.Classify(s, now).String(),
-			Reason:     Reason(s, now),
-			Error:      s.ScanError,
+			Path:               r.Path,
+			Name:               r.Name,
+			Branch:             s.Branch,
+			Dirty:              s.Staged + s.Unstaged + s.Untracked,
+			Ahead:              s.Ahead,
+			Behind:             s.Behind,
+			Unpushed:           s.Ahead,
+			Stashes:            s.Stashes,
+			OtherBranchCommits: s.OtherBranchCommits,
+			LastCommit:         s.LastCommit,
+			Tier:               attention.Classify(s, now).String(),
+			Reason:             Reason(s, now),
+			Error:              s.ScanError,
 		})
 	}
 	return out
 }
 
 // Reason explains the tier in a short phrase, listing signals in attention
-// priority order (error, unpushed, behind, dirty, stale).
+// priority order (error, unpushed, behind, dirty, other branches, stash, stale).
 func Reason(s model.RepoStatus, now time.Time) string {
 	var parts []string
 	if s.ScanError != "" {
@@ -70,6 +75,14 @@ func Reason(s model.RepoStatus, now time.Time) string {
 	}
 	if n := s.Staged + s.Unstaged + s.Untracked; n > 0 {
 		parts = append(parts, fmt.Sprintf("%d uncommitted file%s", n, plural(n)))
+	}
+	if n := s.OtherBranchCommits; n > 0 {
+		parts = append(parts, fmt.Sprintf("%d unpushed commit%s on other branches", n, plural(n)))
+	}
+	if n := s.Stashes; n == 1 {
+		parts = append(parts, "1 stash")
+	} else if n > 1 {
+		parts = append(parts, fmt.Sprintf("%d stashes", n))
 	}
 	if attention.Stale(s, now) {
 		parts = append(parts, "stale")

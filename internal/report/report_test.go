@@ -23,25 +23,25 @@ func TestJSONShape(t *testing.T) {
 			name: "clean",
 			repo: model.Repo{Name: "a", Path: "/r/a", Status: model.RepoStatus{Branch: "main", LastCommit: recent}},
 			want: map[string]any{"path": "/r/a", "name": "a", "branch": "main", "dirty": 0.0, "ahead": 0.0, "behind": 0.0,
-				"unpushed": 0.0, "last_commit": recent.Format(time.RFC3339), "tier": "CLEAN", "reason": "clean"},
+				"unpushed": 0.0, "stashes": 0.0, "other_branch_commits": 0.0, "last_commit": recent.Format(time.RFC3339), "tier": "CLEAN", "reason": "clean"},
 		},
 		{
 			name: "unpushed",
 			repo: model.Repo{Name: "b", Path: "/r/b", Status: model.RepoStatus{Branch: "feat", Ahead: 2, IsDirty: true, LastCommit: recent}},
 			want: map[string]any{"path": "/r/b", "name": "b", "branch": "feat", "dirty": 0.0, "ahead": 2.0, "behind": 0.0,
-				"unpushed": 2.0, "last_commit": recent.Format(time.RFC3339), "tier": "ACTION", "reason": "2 unpushed commits"},
+				"unpushed": 2.0, "stashes": 0.0, "other_branch_commits": 0.0, "last_commit": recent.Format(time.RFC3339), "tier": "ACTION", "reason": "2 unpushed commits"},
 		},
 		{
 			name: "stale dirty",
 			repo: model.Repo{Name: "c", Path: "/r/c", Status: model.RepoStatus{Branch: "main", Unstaged: 1, Untracked: 2, IsDirty: true, LastCommit: old}},
 			want: map[string]any{"path": "/r/c", "name": "c", "branch": "main", "dirty": 3.0, "ahead": 0.0, "behind": 0.0,
-				"unpushed": 0.0, "last_commit": old.Format(time.RFC3339), "tier": "WATCH", "reason": "3 uncommitted files, stale"},
+				"unpushed": 0.0, "stashes": 0.0, "other_branch_commits": 0.0, "last_commit": old.Format(time.RFC3339), "tier": "WATCH", "reason": "3 uncommitted files, stale"},
 		},
 		{
 			name: "scan error",
 			repo: model.Repo{Name: "d", Path: "/r/d", Status: model.RepoStatus{ScanError: "boom"}},
 			want: map[string]any{"path": "/r/d", "name": "d", "branch": "", "dirty": 0.0, "ahead": 0.0, "behind": 0.0,
-				"unpushed": 0.0, "tier": "ACTION", "reason": "scan error", "error": "boom"},
+				"unpushed": 0.0, "stashes": 0.0, "other_branch_commits": 0.0, "tier": "ACTION", "reason": "scan error", "error": "boom"},
 		},
 	}
 	for _, tt := range tests {
@@ -86,5 +86,17 @@ func TestBuildSortsByAttentionAndEmptyIsArray(t *testing.T) {
 	}
 	if buf.String() != "[]\n" {
 		t.Errorf("empty = %q, want []", buf.String())
+	}
+}
+
+func TestReason_HiddenWork(t *testing.T) {
+	now := time.Now()
+	s := model.RepoStatus{Stashes: 2, OtherBranchCommits: 1, IsDirty: true, LastCommit: now}
+	want := "1 unpushed commit on other branches, 2 stashes"
+	if got := Reason(s, now); got != want {
+		t.Errorf("Reason = %q, want %q", got, want)
+	}
+	if got := Reason(model.RepoStatus{Stashes: 1, IsDirty: true, LastCommit: now}, now); got != "1 stash" {
+		t.Errorf("Reason = %q, want %q", got, "1 stash")
 	}
 }

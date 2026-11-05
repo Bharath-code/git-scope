@@ -100,3 +100,20 @@ func TestTierOrdinal(t *testing.T) {
 		t.Fatal("tier ordinal must be Clean < Watch < Action")
 	}
 }
+
+func TestClassify_HiddenWorkIsWatch(t *testing.T) {
+	tests := []struct {
+		name string
+		mut  func(*model.RepoStatus)
+	}{
+		{"stash", func(s *model.RepoStatus) { s.Stashes = 1; s.IsDirty = true }},
+		{"other branch", func(s *model.RepoStatus) { s.OtherBranchCommits = 3; s.IsDirty = true }},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Classify(status(tt.mut), now); got != Watch {
+				t.Errorf("Classify = %v, want WATCH", got)
+			}
+		})
+	}
+}

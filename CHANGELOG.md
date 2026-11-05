@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Repos holding only stashes, or unpushed commits on a branch that isn't checked
+  out, were reported as CLEAN. They are now WATCH, with new `stashes` and
+  `other_branch_commits` fields in `status --json` and MCP, and a **Hidden**
+  column in the dashboard.
+
 ### Added
 - `git-scope status --json`: every repo's branch, uncommitted files,
   ahead/behind, unpushed commits, last commit, and attention tier

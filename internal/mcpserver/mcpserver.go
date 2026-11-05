@@ -49,7 +49,7 @@ func New(roots, ignore []string, version string) *mcp.Server {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "list_repos",
-		Description: "List every git repository under the configured roots with branch, uncommitted file count, ahead/behind, unpushed commits, last commit time and an attention tier (ACTION/WATCH/CLEAN). Sorted most urgent first.",
+		Description: "List every git repository under the configured roots with branch, uncommitted file count, ahead/behind, unpushed commits, stashes, unpushed commits on other branches, last commit time and an attention tier (ACTION/WATCH/CLEAN). Sorted most urgent first.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, Repos, error) {
 		all, err := statusFn()
@@ -58,7 +58,7 @@ func New(roots, ignore []string, version string) *mcp.Server {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "needs_attention",
-		Description: "List only repositories with uncommitted, unpushed or out-of-sync work (tier ACTION or WATCH). Use this before ending a session to check nothing is left behind.",
+		Description: "List only repositories with uncommitted, stashed, unpushed (on any branch) or out-of-sync work (tier ACTION or WATCH). Use this before ending a session to check nothing is left behind.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, Repos, error) {
 		all, err := statusFn()

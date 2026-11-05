@@ -32,7 +32,7 @@ func capCount(n int) int {
 // the primary key); Less applies tier first, then SubScore.
 func SubScore(s model.RepoStatus, now time.Time) int {
 	score := weightAhead*capCount(s.Ahead) + weightBehd*capCount(s.Behind)
-	score += weightDirty * capCount(s.Staged+s.Unstaged+s.Untracked)
+	score += weightDirty * capCount(s.Staged+s.Unstaged+s.Untracked+s.Stashes+s.OtherBranchCommits)
 	if s.ScanError != "" {
 		score += weightErr
 	}
